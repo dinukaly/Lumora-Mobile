@@ -1,43 +1,87 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from 'react-native';
+
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Screen,
+  StatusBadge,
+} from '@/components/ui';
+import { theme } from '@/theme';
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.eyebrow}>Welcome to Lumora</Text>
-      <Text style={styles.title}>Your AI study companion.</Text>
-      <Text style={styles.body}>
-        Turn PDFs and notes into summaries, explanations, flashcards, quizzes,
-        and focused learning sessions.
-      </Text>
-    </View>
+    <Screen
+      title="Focused study, tuned for mobile."
+      subtitle="Theme tokens and base UI primitives are ready for navigation, auth, and dashboard work."
+      headerRight={<StatusBadge label="Foundation" />}
+    >
+      <Card
+        title="Action surfaces"
+        description="Buttons keep mobile-safe touch targets and use the Lumora teal learning palette."
+      >
+        <View style={styles.row}>
+          <Button>Continue</Button>
+          <Button variant="secondary">Review</Button>
+        </View>
+        <View style={styles.row}>
+          <Button variant="ghost">Later</Button>
+          <Button variant="danger">Delete</Button>
+        </View>
+      </Card>
+
+      <Card
+        title="Document status badges"
+        description="Readiness states stay legible with both color and explicit labels."
+      >
+        <View style={styles.badgeRow}>
+          <StatusBadge label="Uploaded" tone="UPLOADED" />
+          <StatusBadge label="Processing" tone="PROCESSING" />
+          <StatusBadge label="Ready" tone="READY" />
+          <StatusBadge label="Failed" tone="FAILED" />
+        </View>
+      </Card>
+
+      <EmptyState
+        eyebrow="Empty state"
+        title="No documents yet"
+        description="Upload a PDF to start reading, asking questions, and generating study tools."
+        actionLabel="Upload first PDF"
+      />
+
+      <ErrorState
+        description="If a request fails, this shared state gives us consistent retry messaging across screens."
+        onRetry={() => undefined}
+      />
+
+      <View style={styles.note}>
+        <Text style={styles.noteText}>
+          Next screens can build on these shared tokens instead of duplicating spacing,
+          color, and state styling.
+        </Text>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    backgroundColor: "#031412",
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.md,
   },
-  eyebrow: {
-    color: "#5EEAD4",
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-    marginBottom: 12,
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
-  title: {
-    color: "#F3FFFB",
-    fontSize: 32,
-    fontWeight: "700",
-    lineHeight: 38,
-    marginBottom: 12,
+  note: {
+    paddingHorizontal: theme.spacing.sm,
   },
-  body: {
-    color: "#B8D4CD",
-    fontSize: 16,
-    lineHeight: 24,
+  noteText: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
   },
 });
