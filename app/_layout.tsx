@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { theme } from '@/theme';
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
@@ -10,10 +12,16 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: {
-            backgroundColor: '#031412',
+            backgroundColor: theme.colors.background,
           },
         }}
-      />
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="document/[id]" />
+        <Stack.Screen name="notifications" />
+      </Stack>
     </SafeAreaProvider>
   );
 }
