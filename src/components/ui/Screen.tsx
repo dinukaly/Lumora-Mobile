@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import {
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,8 @@ type ScreenProps = PropsWithChildren<{
   subtitle?: string;
   scrollable?: boolean;
   headerRight?: ReactNode;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }>;
 
 export function Screen({
@@ -22,6 +25,8 @@ export function Screen({
   subtitle,
   scrollable = true,
   headerRight,
+  refreshing = false,
+  onRefresh,
 }: ScreenProps) {
   const content = (
     <View style={styles.content}>
@@ -44,6 +49,15 @@ export function Screen({
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={theme.colors.brand}
+              />
+            ) : undefined
+          }
         >
           {content}
         </ScrollView>
