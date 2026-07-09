@@ -5,3 +5,4 @@ export * from './ErrorState';
 export * from './PlaceholderScreen';
 export * from './Screen';
 export * from './StatusBadge';
+export * from './TextField';
