@@ -46,7 +46,7 @@ export default function DashboardScreen() {
   function handleNotificationPress(item: NotificationItem) {
     if (item.metadata?.documentId) {
       router.push({
-        pathname: '/document/[id]/index',
+        pathname: '/document/[id]',
         params: { id: item.metadata.documentId },
       });
       return;

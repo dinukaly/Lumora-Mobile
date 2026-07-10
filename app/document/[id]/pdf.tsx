@@ -21,7 +21,7 @@ export default function DocumentPdfScreen() {
           variant: 'secondary',
           onPress: () =>
             router.push({
-              pathname: '/document/[id]/index',
+              pathname: '/document/[id]',
               params: { id },
             }),
         },

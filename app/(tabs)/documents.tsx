@@ -51,7 +51,7 @@ export default function DocumentsScreen() {
 
   function handleOpenDocument(document: DocumentData) {
     router.push({
-      pathname: '/document/[id]/index',
+      pathname: '/document/[id]',
       params: { id: document._id },
     });
   }
