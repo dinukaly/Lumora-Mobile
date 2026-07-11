@@ -6,10 +6,16 @@ import {
   type DocumentData,
   type DocumentStatus,
   useListDocumentsQuery,
+  useUploadDocumentMutation,
 } from '@/api/documentsApi';
 import { DocumentRow } from '@/components/documents';
 import { Button, Card, EmptyState, ErrorState, Screen } from '@/components/ui';
+import {
+  deriveDocumentTitle,
+  pickPdfDocument,
+} from '@/services/uploadDocument';
 import { theme } from '@/theme';
+import { getApiFormErrorState } from '@/utils/apiErrors';
 
 const PAGE_SIZE = 12;
 
@@ -27,6 +33,9 @@ const STATUS_FILTERS: {
 export default function DocumentsScreen() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | undefined>();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadDocument, { isLoading: isUploading }] =
+    useUploadDocumentMutation();
 
   const {
     data,
@@ -49,6 +58,40 @@ export default function DocumentsScreen() {
     void refetch();
   }
 
+  async function handleUploadPress() {
+    setUploadError(null);
+
+    try {
+      const selectedFile = await pickPdfDocument();
+
+      if (!selectedFile) {
+        return;
+      }
+
+      const response = await uploadDocument({
+        file: selectedFile,
+        title: deriveDocumentTitle(selectedFile.name),
+      }).unwrap();
+
+      setStatusFilter(undefined);
+      void refetch();
+      router.push({
+        pathname: '/document/[id]',
+        params: { id: response.document._id },
+      });
+    } catch (uploadFailure) {
+      if (uploadFailure instanceof Error) {
+        setUploadError(uploadFailure.message);
+        return;
+      }
+
+      const parsedError = getApiFormErrorState(uploadFailure);
+      setUploadError(
+        parsedError.formError ?? 'We could not upload this PDF right now.',
+      );
+    }
+  }
+
   function handleOpenDocument(document: DocumentData) {
     router.push({
       pathname: '/document/[id]',
@@ -63,11 +106,21 @@ export default function DocumentsScreen() {
       refreshing={isFetching}
       onRefresh={handleRefresh}
       headerRight={
-        <Button variant="secondary" onPress={() => undefined}>
-          Upload soon
+        <Button
+          variant="secondary"
+          loading={isUploading}
+          onPress={() => void handleUploadPress()}
+        >
+          Upload PDF
         </Button>
       }
     >
+      {uploadError ? (
+        <View style={styles.uploadErrorBox}>
+          <Text style={styles.uploadErrorText}>{uploadError}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.filterRow}>
         {STATUS_FILTERS.map((filter) => {
           const selected = filter.value === statusFilter;
@@ -99,7 +152,7 @@ export default function DocumentsScreen() {
       {data?.pagination ? (
         <Text style={styles.summaryText}>
           Showing {documents.length} of {data.pagination.total} documents
-          {hasMorePages ? ' • More pages available' : ''}
+          {hasMorePages ? ' - More pages available' : ''}
         </Text>
       ) : null}
 
@@ -127,9 +180,9 @@ export default function DocumentsScreen() {
         <EmptyState
           eyebrow="No documents yet"
           title="Your library is empty"
-          description="Uploaded PDFs will appear here with status badges and quick access into each document overview."
-          actionLabel="Go to dashboard"
-          onAction={() => router.push('/(tabs)/dashboard')}
+          description="Upload a PDF to start processing it into summaries, flashcards, quizzes, and chat."
+          actionLabel="Upload a PDF"
+          onAction={() => void handleUploadPress()}
         />
       ) : null}
 
@@ -150,12 +203,24 @@ export default function DocumentsScreen() {
           Some documents may be stale. Pull to refresh and try again.
         </Text>
       ) : null}
-
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  uploadErrorBox: {
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    backgroundColor: theme.colors.dangerSoft,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  uploadErrorText: {
+    color: '#7F1D1D',
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+  },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
