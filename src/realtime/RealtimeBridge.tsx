@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { apiSlice } from '@/api/apiSlice';
 import { documentsApi } from '@/api/documentsApi';
@@ -13,11 +13,23 @@ import {
 } from '@/realtime/socketClient';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { store } from '@/store/store';
+import { useOnAppResume } from '@/utils/appState';
+
+const FALLBACK_REFRESH_COOLDOWN_MS = 15_000;
 
 export function RealtimeBridge({ children }: PropsWithChildren) {
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const lastFallbackRefreshAtRef = useRef(0);
+
+  useOnAppResume(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    refreshCriticalData(dispatch, lastFallbackRefreshAtRef, 'resume');
+  });
 
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
@@ -53,17 +65,55 @@ export function RealtimeBridge({ children }: PropsWithChildren) {
       dispatch(apiSlice.util.invalidateTags(tagsToInvalidate));
     }
 
+    function handleSocketDisconnect() {
+      refreshCriticalData(dispatch, lastFallbackRefreshAtRef, 'socket');
+    }
+
+    function handleSocketConnectError() {
+      refreshCriticalData(dispatch, lastFallbackRefreshAtRef, 'socket');
+    }
+
     socket.on(REALTIME_EVENTS.documentStatus, handleDocumentStatus);
     socket.on(REALTIME_EVENTS.notificationNew, handleNotificationNew);
+    socket.on('disconnect', handleSocketDisconnect);
+    socket.on('connect_error', handleSocketConnectError);
 
     return () => {
       socket.off(REALTIME_EVENTS.documentStatus, handleDocumentStatus);
       socket.off(REALTIME_EVENTS.notificationNew, handleNotificationNew);
+      socket.off('disconnect', handleSocketDisconnect);
+      socket.off('connect_error', handleSocketConnectError);
       disconnectSocket();
     };
   }, [accessToken, dispatch, isAuthenticated]);
 
   return <>{children}</>;
+}
+
+function refreshCriticalData(
+  dispatch: ReturnType<typeof useAppDispatch>,
+  lastFallbackRefreshAtRef: { current: number },
+  reason: 'resume' | 'socket',
+) {
+  const now = Date.now();
+  const shouldThrottle =
+    reason === 'socket' &&
+    now - lastFallbackRefreshAtRef.current < FALLBACK_REFRESH_COOLDOWN_MS;
+
+  if (shouldThrottle) {
+    return;
+  }
+
+  lastFallbackRefreshAtRef.current = now;
+  dispatch(
+    apiSlice.util.invalidateTags([
+      'Documents',
+      'Notifications',
+      'Progress',
+      'Flashcards',
+      'Quizzes',
+    ]),
+  );
 }
 
 function patchDocumentCaches(
