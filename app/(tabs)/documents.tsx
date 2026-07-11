@@ -2,18 +2,22 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { apiSlice, resolveApiBaseUrl } from '@/api/apiSlice';
 import {
   type DocumentData,
   type DocumentStatus,
   useListDocumentsQuery,
-  useUploadDocumentMutation,
 } from '@/api/documentsApi';
 import { DocumentRow } from '@/components/documents';
 import { Button, Card, EmptyState, ErrorState, Screen } from '@/components/ui';
 import {
   deriveDocumentTitle,
+  formatUploadFileSize,
   pickPdfDocument,
+  type UploadState,
+  uploadDocumentWithProgress,
 } from '@/services/uploadDocument';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
 
@@ -30,12 +34,18 @@ const STATUS_FILTERS: {
   { label: 'Failed', value: 'FAILED' },
 ];
 
+const INITIAL_UPLOAD_STATE: UploadState = {
+  status: 'idle',
+};
+
 export default function DocumentsScreen() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | undefined>();
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadDocument, { isLoading: isUploading }] =
-    useUploadDocumentMutation();
+  const [uploadState, setUploadState] = useState<UploadState>(
+    INITIAL_UPLOAD_STATE,
+  );
 
   const {
     data,
@@ -53,43 +63,89 @@ export default function DocumentsScreen() {
   const hasMorePages = Boolean(
     data && data.pagination.page < data.pagination.totalPages,
   );
+  const isUploadBusy =
+    uploadState.status === 'picking' || uploadState.status === 'uploading';
 
   function handleRefresh() {
     void refetch();
   }
 
   async function handleUploadPress() {
-    setUploadError(null);
+    if (isUploadBusy) {
+      return;
+    }
+
+    setUploadState({ status: 'picking' });
 
     try {
       const selectedFile = await pickPdfDocument();
 
       if (!selectedFile) {
+        setUploadState({ status: 'cancelled' });
         return;
       }
 
-      const response = await uploadDocument({
+      const nextUploadState: UploadState = {
+        status: 'uploading',
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        mimeType: selectedFile.mimeType,
+        localUri: selectedFile.uri,
+        progress: 0,
+      };
+
+      setUploadState(nextUploadState);
+
+      const response = await uploadDocumentWithProgress({
         file: selectedFile,
         title: deriveDocumentTitle(selectedFile.name),
-      }).unwrap();
+        accessToken,
+        apiBaseUrl: resolveApiBaseUrl(),
+        onProgress: (progress) => {
+          setUploadState((currentState) =>
+            currentState.status === 'uploading'
+              ? { ...currentState, progress }
+              : currentState,
+          );
+        },
+      });
+
+      setUploadState({
+        ...nextUploadState,
+        status: 'queued',
+        progress: 1,
+        documentId: response.document._id,
+      });
 
       setStatusFilter(undefined);
+      dispatch(
+        apiSlice.util.invalidateTags([
+          'Documents',
+          'Progress',
+          'Notifications',
+        ]),
+      );
       void refetch();
       router.push({
         pathname: '/document/[id]',
         params: { id: response.document._id },
       });
     } catch (uploadFailure) {
-      if (uploadFailure instanceof Error) {
-        setUploadError(uploadFailure.message);
-        return;
-      }
+      const parsedError =
+        uploadFailure instanceof Error
+          ? uploadFailure.message
+          : getApiFormErrorState(uploadFailure).formError;
 
-      const parsedError = getApiFormErrorState(uploadFailure);
-      setUploadError(
-        parsedError.formError ?? 'We could not upload this PDF right now.',
-      );
+      setUploadState((currentState) => ({
+        ...currentState,
+        status: 'failed',
+        error: parsedError ?? 'We could not upload this PDF right now.',
+      }));
     }
+  }
+
+  function handleDismissUploadState() {
+    setUploadState(INITIAL_UPLOAD_STATE);
   }
 
   function handleOpenDocument(document: DocumentData) {
@@ -108,17 +164,19 @@ export default function DocumentsScreen() {
       headerRight={
         <Button
           variant="secondary"
-          loading={isUploading}
+          loading={uploadState.status === 'uploading'}
+          disabled={isUploadBusy}
           onPress={() => void handleUploadPress()}
         >
-          Upload PDF
+          {uploadState.status === 'picking' ? 'Picking...' : 'Upload PDF'}
         </Button>
       }
     >
-      {uploadError ? (
-        <View style={styles.uploadErrorBox}>
-          <Text style={styles.uploadErrorText}>{uploadError}</Text>
-        </View>
+      {uploadState.status !== 'idle' ? (
+        <UploadStateCard
+          uploadState={uploadState}
+          onDismiss={handleDismissUploadState}
+        />
       ) : null}
 
       <View style={styles.filterRow}>
@@ -207,20 +265,106 @@ export default function DocumentsScreen() {
   );
 }
 
+function UploadStateCard({
+  uploadState,
+  onDismiss,
+}: {
+  uploadState: UploadState;
+  onDismiss: () => void;
+}) {
+  const progressPercent =
+    uploadState.progress != null
+      ? Math.max(0, Math.min(Math.round(uploadState.progress * 100), 100))
+      : null;
+  const isDismissible =
+    uploadState.status === 'queued' ||
+    uploadState.status === 'failed' ||
+    uploadState.status === 'cancelled';
+
+  return (
+    <Card
+      title={getUploadTitle(uploadState)}
+      description={getUploadDescription(uploadState)}
+    >
+      {uploadState.fileName ? (
+        <View style={styles.uploadMetaRow}>
+          <Text numberOfLines={1} style={styles.uploadFileName}>
+            {uploadState.fileName}
+          </Text>
+          <Text style={styles.uploadMetaText}>
+            {formatUploadFileSize(uploadState.fileSize)}
+          </Text>
+        </View>
+      ) : null}
+
+      {uploadState.status === 'uploading' ? (
+        <View style={styles.progressBlock}>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progressPercent ?? 0}%` },
+              ]}
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {progressPercent ?? 0}% uploaded
+          </Text>
+        </View>
+      ) : null}
+
+      {uploadState.status === 'failed' && uploadState.error ? (
+        <View style={styles.uploadFailureBox}>
+          <Text style={styles.uploadFailureText}>{uploadState.error}</Text>
+        </View>
+      ) : null}
+
+      {isDismissible ? (
+        <View style={styles.uploadActionRow}>
+          <Button variant="ghost" size="sm" onPress={onDismiss}>
+            Dismiss
+          </Button>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+function getUploadTitle(uploadState: UploadState) {
+  switch (uploadState.status) {
+    case 'picking':
+      return 'Choose a PDF';
+    case 'uploading':
+      return 'Uploading document';
+    case 'queued':
+      return 'Upload queued';
+    case 'failed':
+      return 'Upload failed';
+    case 'cancelled':
+      return 'Upload cancelled';
+    case 'idle':
+      return 'Upload';
+  }
+}
+
+function getUploadDescription(uploadState: UploadState) {
+  switch (uploadState.status) {
+    case 'picking':
+      return 'Select a PDF from your device storage to add it to Lumora.';
+    case 'uploading':
+      return 'Your PDF is being sent now. Keep the app open until the upload finishes.';
+    case 'queued':
+      return 'The PDF reached the backend and is now waiting for processing and indexing.';
+    case 'failed':
+      return 'The upload did not complete. Review the error below and try again.';
+    case 'cancelled':
+      return 'No file was uploaded because the picker was closed before selection.';
+    case 'idle':
+      return '';
+  }
+}
+
 const styles = StyleSheet.create({
-  uploadErrorBox: {
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-    backgroundColor: theme.colors.dangerSoft,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-  },
-  uploadErrorText: {
-    color: '#7F1D1D',
-    fontSize: theme.typeScale.bodySmall.fontSize,
-    lineHeight: theme.typeScale.bodySmall.lineHeight,
-  },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -259,6 +403,61 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: theme.spacing.md,
+  },
+  uploadMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing.md,
+  },
+  uploadFileName: {
+    flex: 1,
+    color: theme.colors.text,
+    fontSize: theme.typeScale.body.fontSize,
+    lineHeight: theme.typeScale.body.lineHeight,
+    fontWeight: '700',
+  },
+  uploadMetaText: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+  },
+  progressBlock: {
+    gap: theme.spacing.sm,
+  },
+  progressTrack: {
+    height: 10,
+    borderRadius: theme.radii.pill,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.surfaceSoft,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: theme.radii.pill,
+    backgroundColor: theme.colors.brand,
+  },
+  progressText: {
+    color: theme.colors.textMuted,
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+    fontWeight: '700',
+  },
+  uploadFailureBox: {
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    backgroundColor: theme.colors.dangerSoft,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
+  uploadFailureText: {
+    color: '#7F1D1D',
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+  },
+  uploadActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   skeletonTitle: {
     width: '55%',
