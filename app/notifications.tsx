@@ -19,7 +19,7 @@ export default function NotificationsScreen() {
           label: 'Open sample document overview',
           onPress: () =>
             router.push({
-              pathname: '/document/[id]/index',
+              pathname: '/document/[id]',
               params: { id: 'lecture-notes' },
             }),
         },

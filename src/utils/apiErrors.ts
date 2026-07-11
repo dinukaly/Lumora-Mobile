@@ -55,6 +55,14 @@ function getTransportErrorMessage(error: unknown) {
     return 'The request timed out. Please try again.';
   }
 
+  if (
+    error.status === 'CUSTOM_ERROR' &&
+    'error' in error &&
+    typeof error.error === 'string'
+  ) {
+    return error.error;
+  }
+
   return null;
 }
 

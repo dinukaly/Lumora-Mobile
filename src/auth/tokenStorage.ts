@@ -1,26 +1,71 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 const REFRESH_TOKEN_KEY = 'lumora.mobile.refresh-token';
 
-async function ensureSecureStoreAvailable() {
-  const isAvailable = await SecureStore.isAvailableAsync();
+let memoryRefreshToken: string | null = null;
 
-  if (!isAvailable) {
-    throw new Error('SecureStore is unavailable on this device.');
+async function canUseSecureStore() {
+  if (Platform.OS === 'web') {
+    return false;
+  }
+
+  try {
+    return await SecureStore.isAvailableAsync();
+  } catch {
+    return false;
   }
 }
 
+function getWebStorage() {
+  if (typeof globalThis === 'undefined' || !('localStorage' in globalThis)) {
+    return null;
+  }
+
+  return globalThis.localStorage;
+}
+
 export async function saveRefreshToken(refreshToken: string) {
-  await ensureSecureStoreAvailable();
-  await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+  if (await canUseSecureStore()) {
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    return;
+  }
+
+  const webStorage = getWebStorage();
+
+  if (webStorage) {
+    webStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    return;
+  }
+
+  memoryRefreshToken = refreshToken;
 }
 
 export async function getRefreshToken() {
-  await ensureSecureStoreAvailable();
-  return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+  if (await canUseSecureStore()) {
+    return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+  }
+
+  const webStorage = getWebStorage();
+
+  if (webStorage) {
+    return webStorage.getItem(REFRESH_TOKEN_KEY);
+  }
+
+  return memoryRefreshToken;
 }
 
 export async function clearRefreshToken() {
-  await ensureSecureStoreAvailable();
-  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+  if (await canUseSecureStore()) {
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    return;
+  }
+
+  const webStorage = getWebStorage();
+
+  if (webStorage) {
+    webStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
+
+  memoryRefreshToken = null;
 }
