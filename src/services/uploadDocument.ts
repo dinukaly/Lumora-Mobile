@@ -3,6 +3,14 @@ import { Platform } from 'react-native';
 
 const MAX_DOCUMENT_UPLOAD_BYTES = 50 * 1024 * 1024;
 
+export type UploadStatus =
+  | 'idle'
+  | 'picking'
+  | 'uploading'
+  | 'queued'
+  | 'failed'
+  | 'cancelled';
+
 export type UploadableDocumentFile = {
   uri: string;
   name: string;
@@ -11,9 +19,32 @@ export type UploadableDocumentFile = {
   webFile?: File;
 };
 
+export type UploadState = {
+  status: UploadStatus;
+  localUri?: string;
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: number;
+  progress?: number;
+  documentId?: string;
+  error?: string;
+};
+
 export type UploadDocumentPayload = {
   file: UploadableDocumentFile;
   title?: string;
+};
+
+export type UploadDocumentResponse = {
+  message: string;
+  document: {
+    _id: string;
+    title: string;
+    originalFileName: string;
+    status: string;
+    fileSize?: number;
+    createdAt: string;
+  };
 };
 
 export async function pickPdfDocument() {
@@ -78,6 +109,93 @@ export async function createUploadDocumentFormData({
   return formData;
 }
 
+export async function uploadDocumentWithProgress({
+  file,
+  title,
+  accessToken,
+  apiBaseUrl,
+  onProgress,
+}: UploadDocumentPayload & {
+  accessToken?: string | null;
+  apiBaseUrl: string;
+  onProgress?: (progress: number) => void;
+}) {
+  const formData = await createUploadDocumentFormData({ file, title });
+
+  return new Promise<UploadDocumentResponse>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${apiBaseUrl}/documents/upload`);
+    xhr.setRequestHeader('accept', 'application/json');
+
+    if (accessToken) {
+      xhr.setRequestHeader('authorization', `Bearer ${accessToken}`);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || !onProgress) {
+        return;
+      }
+
+      onProgress(Math.min(event.loaded / event.total, 1));
+    };
+
+    xhr.onerror = () => {
+      reject({ status: 'FETCH_ERROR' });
+    };
+
+    xhr.onabort = () => {
+      reject({
+        status: 'CUSTOM_ERROR',
+        error: 'Upload was cancelled before it finished.',
+      });
+    };
+
+    xhr.onload = () => {
+      const payload = parseJsonResponse(xhr.responseText);
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.(1);
+
+        if (payload) {
+          resolve(payload as UploadDocumentResponse);
+          return;
+        }
+
+        reject({
+          status: 'PARSING_ERROR',
+          originalStatus: xhr.status,
+          data: xhr.responseText,
+          error: 'Upload completed, but the server response could not be read.',
+        });
+        return;
+      }
+
+      reject({
+        status: xhr.status,
+        data: payload ?? xhr.responseText,
+      });
+    };
+
+    xhr.send(formData);
+  });
+}
+
+export function formatUploadFileSize(bytes?: number) {
+  if (bytes == null) {
+    return 'Unknown size';
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function getPdfValidationMessage(asset: DocumentPicker.DocumentPickerAsset) {
   const normalizedName = asset.name.toLowerCase();
   const mimeType = asset.mimeType?.toLowerCase();
@@ -114,4 +232,16 @@ function normalizePdfMimeType(mimeType: string | null | undefined, fileName: str
   }
 
   return normalizedMimeType ?? 'application/pdf';
+}
+
+function parseJsonResponse(responseText: string) {
+  if (!responseText) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(responseText) as unknown;
+  } catch {
+    return null;
+  }
 }

@@ -1,9 +1,4 @@
 import { apiSlice } from '@/api/apiSlice';
-import {
-  createUploadDocumentFormData,
-  type UploadDocumentPayload,
-} from '@/services/uploadDocument';
-
 export type DocumentStatus = 'UPLOADED' | 'PROCESSING' | 'READY' | 'FAILED';
 
 export type DocumentData = {
@@ -44,11 +39,6 @@ export type ListDocumentsParams = {
   status?: DocumentStatus;
 };
 
-export type UploadDocumentResponse = {
-  message: string;
-  document: DocumentData;
-};
-
 export const documentsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     listDocuments: builder.query<DocumentsListResponse, ListDocumentsParams | void>({
@@ -72,42 +62,7 @@ export const documentsApi = apiSlice.injectEndpoints({
       transformResponse: (response: DocumentDetailResponse) => response.document,
       providesTags: (_result, _error, id) => [{ type: 'Documents', id }],
     }),
-    uploadDocument: builder.mutation<UploadDocumentResponse, UploadDocumentPayload>({
-      async queryFn(payload, _api, _extraOptions, baseQuery) {
-        try {
-          const formData = await createUploadDocumentFormData(payload);
-          const result = await baseQuery({
-            url: '/documents/upload',
-            method: 'POST',
-            body: formData,
-          });
-
-          if (result.error) {
-            return { error: result.error };
-          }
-
-          return {
-            data: result.data as UploadDocumentResponse,
-          };
-        } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error:
-                error instanceof Error
-                  ? error.message
-                  : 'We could not prepare the selected PDF for upload.',
-            },
-          };
-        }
-      },
-      invalidatesTags: ['Documents', 'Progress', 'Notifications'],
-    }),
   }),
 });
 
-export const {
-  useGetDocumentQuery,
-  useListDocumentsQuery,
-  useUploadDocumentMutation,
-} = documentsApi;
+export const { useGetDocumentQuery, useListDocumentsQuery } = documentsApi;
