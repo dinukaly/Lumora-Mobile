@@ -20,8 +20,38 @@ export type DocumentData = {
 };
 
 type DocumentDetailResponse = {
-  document: DocumentData;
+  document?: DocumentData | null;
 };
+
+function isDocumentData(value: unknown): value is DocumentData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    '_id' in value &&
+    'title' in value &&
+    'status' in value
+  );
+}
+
+function normalizeDocumentDetailResponse(response: unknown): DocumentData {
+  if (
+    typeof response === 'object' &&
+    response !== null &&
+    'document' in response
+  ) {
+    const detail = response as DocumentDetailResponse;
+
+    if (isDocumentData(detail.document)) {
+      return detail.document;
+    }
+  }
+
+  if (isDocumentData(response)) {
+    return response;
+  }
+
+  throw new Error('Document detail response did not include a document.');
+}
 
 export type DocumentsListResponse = {
   documents: DocumentData[];
@@ -59,7 +89,7 @@ export const documentsApi = apiSlice.injectEndpoints({
     }),
     getDocument: builder.query<DocumentData, string>({
       query: (id) => `/documents/${id}`,
-      transformResponse: (response: DocumentDetailResponse) => response.document,
+      transformResponse: normalizeDocumentDetailResponse,
       providesTags: (_result, _error, id) => [{ type: 'Documents', id }],
     }),
   }),
