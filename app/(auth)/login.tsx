@@ -1,8 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -80,88 +78,81 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen scrollable={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardArea}
-      >
-        <View style={styles.centered}>
-          <Card>
-            <View style={styles.hero}>
-              <Text style={styles.eyebrow}>Lumora Mobile</Text>
-              <Text style={styles.title}>Welcome back</Text>
-              <Text style={styles.subtitle}>
-                Sign in to continue studying with your documents, quizzes, and flashcards.
-              </Text>
-            </View>
+    <Screen>
+      <View style={styles.centered}>
+        <Card>
+          <View style={styles.hero}>
+            <Text style={styles.eyebrow}>Lumora Mobile</Text>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue studying with your documents, quizzes, and flashcards.
+            </Text>
+          </View>
 
-            <View style={styles.form}>
-              {formError ? (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorBannerText}>{formError}</Text>
-                </View>
-              ) : null}
+          <View style={styles.form}>
+            {formError ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorBannerText}>{formError}</Text>
+              </View>
+            ) : null}
 
-              <TextField
-                label="Email"
-                value={email}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                inputMode="email"
-                onChangeText={(value) => {
-                  setEmail(value);
-                  clearFieldError('email');
-                }}
-                placeholder="you@example.com"
-                error={fieldErrors.email}
-              />
+            <TextField
+              label="Email"
+              value={email}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              inputMode="email"
+              onChangeText={(value) => {
+                setEmail(value);
+                clearFieldError('email');
+              }}
+              placeholder="you@example.com"
+              error={fieldErrors.email}
+            />
 
-              <TextField
-                label="Password"
-                value={password}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-                textContentType="password"
-                secureTextEntry
-                onChangeText={(value) => {
-                  setPassword(value);
-                  clearFieldError('password');
-                }}
-                placeholder="Enter your password"
-                error={fieldErrors.password}
-              />
+            <TextField
+              label="Password"
+              value={password}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
+              textContentType="password"
+              secureTextEntry
+              onChangeText={(value) => {
+                setPassword(value);
+                clearFieldError('password');
+              }}
+              placeholder="Enter your password"
+              error={fieldErrors.password}
+            />
 
-              <Button fullWidth size="lg" loading={isLoading} onPress={handleSubmit}>
-                Sign in
-              </Button>
-            </View>
+            <Button fullWidth size="lg" loading={isLoading} onPress={handleSubmit}>
+              Sign in
+            </Button>
+          </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don&apos;t have an account?</Text>
-              <Link href="/(auth)/register" asChild>
-                <Pressable accessibilityRole="link">
-                  <Text style={styles.footerLink}>Create one</Text>
-                </Pressable>
-              </Link>
-            </View>
-          </Card>
-        </View>
-      </KeyboardAvoidingView>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don&apos;t have an account?</Text>
+            <Link href="/(auth)/register" asChild>
+              <Pressable accessibilityRole="link">
+                <Text style={styles.footerLink}>Create one</Text>
+              </Pressable>
+            </Link>
+          </View>
+        </Card>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardArea: {
-    flex: 1,
-  },
   centered: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: theme.spacing.xl,
   },
   hero: {
     gap: theme.spacing.sm,
