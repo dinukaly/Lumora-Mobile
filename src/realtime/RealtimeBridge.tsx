@@ -24,7 +24,7 @@ export function RealtimeBridge({ children }: PropsWithChildren) {
   const lastFallbackRefreshAtRef = useRef(0);
 
   useOnAppResume(() => {
-    if (!isAuthenticated) {
+    if (!hasLiveSession()) {
       return;
     }
 
@@ -95,6 +95,10 @@ function refreshCriticalData(
   lastFallbackRefreshAtRef: { current: number },
   reason: 'resume' | 'socket',
 ) {
+  if (!hasLiveSession()) {
+    return;
+  }
+
   const now = Date.now();
   const shouldThrottle =
     reason === 'socket' &&
@@ -114,6 +118,12 @@ function refreshCriticalData(
       'Quizzes',
     ]),
   );
+}
+
+function hasLiveSession() {
+  const authState = store.getState().auth;
+
+  return Boolean(authState.isAuthenticated && authState.accessToken);
 }
 
 function patchDocumentCaches(

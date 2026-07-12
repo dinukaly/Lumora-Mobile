@@ -1,8 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -93,109 +91,102 @@ export default function RegisterScreen() {
   }
 
   return (
-    <Screen scrollable={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardArea}
-      >
-        <View style={styles.centered}>
-          <Card>
-            <View style={styles.hero}>
-              <Text style={styles.eyebrow}>Lumora Mobile</Text>
-              <Text style={styles.title}>Create your account</Text>
-              <Text style={styles.subtitle}>
-                Start turning PDFs into grounded summaries, questions, quizzes, and flashcards.
-              </Text>
-            </View>
+    <Screen>
+      <View style={styles.centered}>
+        <Card>
+          <View style={styles.hero}>
+            <Text style={styles.eyebrow}>Lumora Mobile</Text>
+            <Text style={styles.title}>Create your account</Text>
+            <Text style={styles.subtitle}>
+              Start turning PDFs into grounded summaries, questions, quizzes, and flashcards.
+            </Text>
+          </View>
 
-            <View style={styles.form}>
-              {formError ? (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorBannerText}>{formError}</Text>
-                </View>
-              ) : null}
+          <View style={styles.form}>
+            {formError ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorBannerText}>{formError}</Text>
+              </View>
+            ) : null}
 
-              {data?.message ? (
-                <View style={styles.infoBanner}>
-                  <Text style={styles.infoBannerText}>{data.message}</Text>
-                </View>
-              ) : null}
+            {data?.message ? (
+              <View style={styles.infoBanner}>
+                <Text style={styles.infoBannerText}>{data.message}</Text>
+              </View>
+            ) : null}
 
-              <TextField
-                label="Name"
-                value={name}
-                autoCapitalize="words"
-                autoCorrect={false}
-                textContentType="name"
-                onChangeText={(value) => {
-                  setName(value);
-                  clearFieldError('name');
-                }}
-                placeholder="Jane Learner"
-                error={fieldErrors.name}
-              />
+            <TextField
+              label="Name"
+              value={name}
+              autoCapitalize="words"
+              autoCorrect={false}
+              textContentType="name"
+              onChangeText={(value) => {
+                setName(value);
+                clearFieldError('name');
+              }}
+              placeholder="Jane Learner"
+              error={fieldErrors.name}
+            />
 
-              <TextField
-                label="Email"
-                value={email}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                inputMode="email"
-                onChangeText={(value) => {
-                  setEmail(value);
-                  clearFieldError('email');
-                }}
-                placeholder="you@example.com"
-                error={fieldErrors.email}
-              />
+            <TextField
+              label="Email"
+              value={email}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              inputMode="email"
+              onChangeText={(value) => {
+                setEmail(value);
+                clearFieldError('email');
+              }}
+              placeholder="you@example.com"
+              error={fieldErrors.email}
+            />
 
-              <TextField
-                label="Password"
-                value={password}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="new-password"
-                textContentType="newPassword"
-                secureTextEntry
-                onChangeText={(value) => {
-                  setPassword(value);
-                  clearFieldError('password');
-                }}
-                placeholder="Minimum 8 characters"
-                hint="Use at least 8 characters."
-                error={fieldErrors.password}
-              />
+            <TextField
+              label="Password"
+              value={password}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="new-password"
+              textContentType="newPassword"
+              secureTextEntry
+              onChangeText={(value) => {
+                setPassword(value);
+                clearFieldError('password');
+              }}
+              placeholder="Minimum 8 characters"
+              hint="Use at least 8 characters."
+              error={fieldErrors.password}
+            />
 
-              <Button fullWidth size="lg" loading={isLoading} onPress={handleSubmit}>
-                Create account
-              </Button>
-            </View>
+            <Button fullWidth size="lg" loading={isLoading} onPress={handleSubmit}>
+              Create account
+            </Button>
+          </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account?</Text>
-              <Link href="/(auth)/login" asChild>
-                <Pressable accessibilityRole="link">
-                  <Text style={styles.footerLink}>Sign in</Text>
-                </Pressable>
-              </Link>
-            </View>
-          </Card>
-        </View>
-      </KeyboardAvoidingView>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account?</Text>
+            <Link href="/(auth)/login" asChild>
+              <Pressable accessibilityRole="link">
+                <Text style={styles.footerLink}>Sign in</Text>
+              </Pressable>
+            </Link>
+          </View>
+        </Card>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardArea: {
-    flex: 1,
-  },
   centered: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: theme.spacing.xl,
   },
   hero: {
     gap: theme.spacing.sm,

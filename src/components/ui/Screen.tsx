@@ -39,7 +39,9 @@ export function Screen({
           {headerRight ? <View style={styles.headerRight}>{headerRight}</View> : null}
         </View>
       )}
-      <View style={styles.body}>{children}</View>
+      <View style={[styles.body, !scrollable ? styles.bodyFill : null]}>
+        {children}
+      </View>
     </View>
   );
 
@@ -48,6 +50,7 @@ export function Screen({
       {scrollable ? (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           refreshControl={
             onRefresh ? (
@@ -108,6 +111,10 @@ const styles = StyleSheet.create({
     lineHeight: theme.typeScale.body.lineHeight,
   },
   body: {
+    flexGrow: 1,
     gap: theme.layout.sectionGap,
+  },
+  bodyFill: {
+    flex: 1,
   },
 });
