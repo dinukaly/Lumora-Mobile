@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -53,6 +54,7 @@ export default function DocumentChatScreen() {
     useState(false);
   const [pendingChat, setPendingChat] = useState<PendingChatState | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [sendChatMessage, { isLoading: isSending }] = useSendChatMessageMutation();
 
   const {
@@ -133,6 +135,21 @@ export default function DocumentChatScreen() {
       clearTimeout(timeoutId);
     };
   }, [displayMessages.length, documentId]);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+      scrollToBottom(scrollRef);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const handleStartNewChat = useCallback(() => {
     setIsComposingNewConversation(true);
@@ -274,7 +291,7 @@ export default function DocumentChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
       style={styles.safeArea}
     >
@@ -322,6 +339,7 @@ export default function DocumentChatScreen() {
           </View>
         </View>
 
+        {!isKeyboardVisible ? (
         <View style={styles.historyCard}>
           <View style={styles.historyHeader}>
             <View style={styles.historyHeaderText}>
@@ -421,6 +439,7 @@ export default function DocumentChatScreen() {
             </ScrollView>
           )}
         </View>
+        ) : null}
 
         {chatError ? (
           <View style={styles.inlineAlert}>
@@ -516,6 +535,7 @@ export default function DocumentChatScreen() {
             style={styles.composerInput}
             textAlignVertical="top"
             value={composerValue}
+            onFocus={() => scrollToBottom(scrollRef)}
           />
           <View style={styles.composerActions}>
             <Button
