@@ -2,7 +2,11 @@ import { useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { authApi, useLogoutMutation } from '@/api/authApi';
+import {
+  authApi,
+  useLogoutMutation,
+  useRemovePushTokenMutation,
+} from '@/api/authApi';
 import { apiSlice } from '@/api/apiSlice';
 import {
   finishBootstrap,
@@ -15,6 +19,7 @@ import {
 } from '@/auth/tokenStorage';
 import { Card } from '@/components/ui';
 import { disconnectSocket } from '@/realtime/socketClient';
+import { unregisterStoredPushToken } from '@/services/pushNotifications';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { theme } from '@/theme';
 
@@ -129,12 +134,20 @@ export function AuthBootstrapGate({
 
 export function useLogoutAction() {
   const dispatch = useAppDispatch();
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
   const [logoutRequest, { isLoading }] = useLogoutMutation();
+  const [removePushTokenRequest] = useRemovePushTokenMutation();
 
   async function runLogout() {
     const refreshToken = await getRefreshToken();
 
     try {
+      if (accessToken) {
+        await unregisterStoredPushToken(async (token) => {
+          await removePushTokenRequest({ token }).unwrap();
+        });
+      }
+
       if (refreshToken) {
         await logoutRequest({ refreshToken }).unwrap();
       } else {
