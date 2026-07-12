@@ -27,6 +27,7 @@ import {
 } from '@/api/conversationsApi';
 import { ChatMessageBubble } from '@/components/chat';
 import { Button, EmptyState, ErrorState, TextField } from '@/components/ui';
+import { isChatStreamingSupported } from '@/services/chatStream';
 import { useAppDispatch } from '@/store/hooks';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
@@ -149,6 +150,7 @@ export default function DocumentChatScreen() {
 
   const handleSend = useCallback(async () => {
     const nextMessage = composerValue.trim();
+    const shouldUseStreaming = isChatStreamingSupported();
 
     if (!documentId || !nextMessage || !isDocumentReady || isSending) {
       return;
@@ -167,6 +169,12 @@ export default function DocumentChatScreen() {
       userMessage: pendingUserMessage,
       conversationId: activeConversationId ?? undefined,
     });
+
+    if (shouldUseStreaming) {
+      setChatError(
+        'Streaming chat is not enabled in this build yet. Falling back to standard responses.',
+      );
+    }
 
     try {
       const response = await sendChatMessage({
