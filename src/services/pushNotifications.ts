@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
 const PUSH_TOKEN_KEY = 'lumora.mobile.push-token';
@@ -210,10 +211,38 @@ export type { PushRegistrationStatus };
 
 async function loadNativePushModules() {
   try {
-    const [Device, Notifications] = await Promise.all([
-      import('expo-device'),
-      import('expo-notifications'),
-    ]);
+    const requiredNativeModules = [
+      'ExpoDevice',
+      'ExpoPushTokenManager',
+      'ExpoNotificationPermissionsModule',
+      'NotificationsServerRegistrationModule',
+    ];
+
+    if (Platform.OS === 'android') {
+      requiredNativeModules.push('ExpoNotificationChannelManager');
+    }
+
+    const hasAllNativeModules = requiredNativeModules.every((moduleName) =>
+      Boolean(requireOptionalNativeModule(moduleName)),
+    );
+
+    if (!hasAllNativeModules) {
+      if (!didWarnAboutUnavailableNativePushModules) {
+        didWarnAboutUnavailableNativePushModules = true;
+        console.warn(
+          'Expo native push modules are unavailable in the current runtime. Rebuild the development client to enable push notifications.',
+        );
+      }
+
+      return null;
+    }
+
+    // Use require inside try/catch so missing native modules fail gracefully
+    // on older dev clients instead of crashing during module evaluation.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Device = require('expo-device') as typeof import('expo-device');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Notifications = require('expo-notifications') as typeof import('expo-notifications');
 
     return {
       Device,
