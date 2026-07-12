@@ -42,6 +42,8 @@ export default function DocumentsScreen() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const hasActiveSession = Boolean(isAuthenticated && accessToken);
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | undefined>();
   const [uploadState, setUploadState] = useState<UploadState>(
     INITIAL_UPLOAD_STATE,
@@ -57,6 +59,8 @@ export default function DocumentsScreen() {
     page: 1,
     limit: PAGE_SIZE,
     status: statusFilter,
+  }, {
+    skip: !hasActiveSession,
   });
 
   const documents = data?.documents ?? [];
@@ -67,11 +71,15 @@ export default function DocumentsScreen() {
     uploadState.status === 'picking' || uploadState.status === 'uploading';
 
   function handleRefresh() {
+    if (!hasActiveSession) {
+      return;
+    }
+
     void refetch();
   }
 
   async function handleUploadPress() {
-    if (isUploadBusy) {
+    if (isUploadBusy || !hasActiveSession) {
       return;
     }
 

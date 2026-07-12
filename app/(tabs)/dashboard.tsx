@@ -18,20 +18,23 @@ import { theme } from '@/theme';
 export default function DashboardScreen() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const hasActiveSession = Boolean(isAuthenticated && accessToken);
   const {
     data: progress,
     error: progressError,
     isLoading: progressLoading,
     isFetching: progressFetching,
     refetch: refetchProgress,
-  } = useGetProgressQuery();
+  } = useGetProgressQuery(undefined, { skip: !hasActiveSession });
   const {
     data: notificationsResponse,
     error: notificationsError,
     isLoading: notificationsLoading,
     isFetching: notificationsFetching,
     refetch: refetchNotifications,
-  } = useGetNotificationsQuery({ limit: 5 });
+  } = useGetNotificationsQuery({ limit: 5 }, { skip: !hasActiveSession });
 
   const refreshing = progressFetching || notificationsFetching;
   const notifications = notificationsResponse?.notifications ?? [];
@@ -39,6 +42,10 @@ export default function DashboardScreen() {
   const hasPrimaryError = !progress && !notificationsResponse;
 
   function handleRefresh() {
+    if (!hasActiveSession) {
+      return;
+    }
+
     void refetchProgress();
     void refetchNotifications();
   }
