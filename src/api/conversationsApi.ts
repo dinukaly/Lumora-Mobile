@@ -56,6 +56,25 @@ export type ListConversationsResponse = {
   totalPages: number;
 };
 
+export type SendChatMessageRequest = {
+  conversationId?: string;
+  documentId: string;
+  message: string;
+  action?: 'CHAT';
+};
+
+export type SendChatMessageResponse = {
+  message: {
+    id: string;
+    conversationId: string;
+    role: 'assistant';
+    content: string;
+    citations?: MessageCitation[];
+    tokenUsage?: MessageTokenUsage;
+    createdAt: string;
+  };
+};
+
 export const conversationsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     listConversations: builder.query<
@@ -83,6 +102,20 @@ export const conversationsApi = apiSlice.injectEndpoints({
         { type: 'Conversations', id: conversationId },
       ],
     }),
+    sendChatMessage: builder.mutation<
+      SendChatMessageResponse,
+      SendChatMessageRequest
+    >({
+      query: (body) => ({
+        url: '/ai/chat',
+        method: 'POST',
+        body: {
+          ...body,
+          action: body.action ?? 'CHAT',
+        },
+      }),
+      invalidatesTags: ['Conversations', 'Progress'],
+    }),
   }),
 });
 
@@ -91,4 +124,5 @@ export const {
   useLazyGetConversationQuery,
   useListConversationsQuery,
   useLazyListConversationsQuery,
+  useSendChatMessageMutation,
 } = conversationsApi;
