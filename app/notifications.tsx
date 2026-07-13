@@ -8,7 +8,14 @@ import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from '@/api/notificationsApi';
-import { Button, Card, EmptyState, ErrorState, Screen } from '@/components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  InlineNotice,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
 
@@ -213,6 +220,10 @@ export default function NotificationsScreen() {
               />
             ))}
           </View>
+        ) : null}
+
+        {error && notifications.length > 0 ? (
+          <InlineNotice message="Your inbox is showing cached notifications. Pull to refresh and try again." />
         ) : null}
       </Card>
     </Screen>

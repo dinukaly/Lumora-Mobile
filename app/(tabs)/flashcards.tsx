@@ -17,6 +17,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  InlineNotice,
   Screen,
   StatusBadge,
 } from '@/components/ui';
@@ -202,6 +203,14 @@ export default function FlashcardsScreen() {
         <View style={styles.inlineAlert}>
           <Text style={styles.inlineAlertText}>{reviewError}</Text>
         </View>
+      ) : null}
+
+      {documentsError && documents.length > 0 ? (
+        <InlineNotice message="Document filters are showing cached data. Pull to refresh and try again." />
+      ) : null}
+
+      {cardLoadError && (allCardsData || visibleCardsData) ? (
+        <InlineNotice message="Flashcards are showing cached data. Pull to refresh and try again." />
       ) : null}
 
       <Card

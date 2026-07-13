@@ -15,6 +15,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  InlineNotice,
   Screen,
   StatusBadge,
   TextField,
@@ -292,6 +293,14 @@ export default function DocumentFlashcardsScreen() {
         <View style={styles.successAlert}>
           <Text style={styles.successAlertText}>{queueMessage}</Text>
         </View>
+      ) : null}
+
+      {documentError && document ? (
+        <InlineNotice message="This document is showing cached details. Pull to refresh and try again." />
+      ) : null}
+
+      {cardsError && (allCardsData || visibleCardsData) ? (
+        <InlineNotice message="Flashcards are showing cached data. Pull to refresh and try again." />
       ) : null}
 
       {!isDocumentReady ? (

@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  InlineNotice,
   Screen,
 } from '@/components/ui';
 import { useAppSelector } from '@/store/hooks';
@@ -204,9 +205,11 @@ export default function DashboardScreen() {
       </Card>
 
       {progressError && progress ? (
-        <Text style={styles.inlineError}>
-          Progress is showing cached data. Pull to refresh and try again.
-        </Text>
+        <InlineNotice message="Progress is showing cached data. Pull to refresh and try again." />
+      ) : null}
+
+      {notificationsError && notifications.length > 0 ? (
+        <InlineNotice message="Recent notifications may be stale. Pull to refresh and try again." />
       ) : null}
     </Screen>
   );
@@ -304,10 +307,5 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: theme.radii.sm,
     backgroundColor: theme.colors.surfaceSoft,
-  },
-  inlineError: {
-    color: theme.colors.warning,
-    fontSize: theme.typeScale.bodySmall.fontSize,
-    lineHeight: theme.typeScale.bodySmall.lineHeight,
   },
 });

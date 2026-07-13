@@ -10,6 +10,7 @@ import {
   Button,
   Card,
   ErrorState,
+  InlineNotice,
   Screen,
   StatusBadge,
 } from '@/components/ui';
@@ -100,6 +101,10 @@ export default function DocumentOverviewScreen() {
           description="We could not load this document right now."
           onRetry={() => void refetch()}
         />
+      ) : null}
+
+      {error && document ? (
+        <InlineNotice message="This document is showing cached details. Pull to refresh and try again." />
       ) : null}
 
       {document ? (

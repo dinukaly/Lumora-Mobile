@@ -17,6 +17,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  InlineNotice,
   Screen,
   StatusBadge,
   TextField,
@@ -297,6 +298,18 @@ export default function DocumentQuizzesScreen() {
         <View style={styles.successAlert}>
           <Text style={styles.successAlertText}>{queueMessage}</Text>
         </View>
+      ) : null}
+
+      {documentError && document ? (
+        <InlineNotice message="This document is showing cached details. Pull to refresh and try again." />
+      ) : null}
+
+      {quizzesError && quizzes.length > 0 ? (
+        <InlineNotice message="The quiz list is showing cached data. Pull to refresh and try again." />
+      ) : null}
+
+      {quizDetailError && quizDetail ? (
+        <InlineNotice message="The selected quiz is showing cached details. Pull to refresh and try again." />
       ) : null}
 
       {!isDocumentReady ? (

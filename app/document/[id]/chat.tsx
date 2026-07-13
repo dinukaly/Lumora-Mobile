@@ -27,7 +27,13 @@ import {
   useSendChatMessageMutation,
 } from '@/api/conversationsApi';
 import { ChatMessageBubble } from '@/components/chat';
-import { Button, EmptyState, ErrorState, TextField } from '@/components/ui';
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  InlineNotice,
+  TextField,
+} from '@/components/ui';
 import { isChatStreamingSupported } from '@/services/chatStream';
 import { useAppDispatch } from '@/store/hooks';
 import { theme } from '@/theme';
@@ -445,6 +451,18 @@ export default function DocumentChatScreen() {
           <View style={styles.inlineAlert}>
             <Text style={styles.inlineAlertText}>{chatError}</Text>
           </View>
+        ) : null}
+
+        {documentError && document ? (
+          <InlineNotice message="This document is showing cached details. Pull to refresh and try again." />
+        ) : null}
+
+        {conversationListError && conversationList ? (
+          <InlineNotice message="Conversation history is showing cached data. Pull to refresh and try again." />
+        ) : null}
+
+        {conversationDetailError && activeConversation ? (
+          <InlineNotice message="The active conversation is showing cached messages. Pull to refresh and try again." />
         ) : null}
 
         <View style={styles.messagesPanel}>

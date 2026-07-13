@@ -9,7 +9,14 @@ import {
   useListDocumentsQuery,
 } from '@/api/documentsApi';
 import { DocumentRow } from '@/components/documents';
-import { Button, Card, EmptyState, ErrorState, Screen } from '@/components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  InlineNotice,
+  Screen,
+} from '@/components/ui';
 import {
   deriveDocumentTitle,
   formatUploadFileSize,
@@ -265,9 +272,7 @@ export default function DocumentsScreen() {
       ) : null}
 
       {error && documents.length > 0 ? (
-        <Text style={styles.inlineError}>
-          Some documents may be stale. Pull to refresh and try again.
-        </Text>
+        <InlineNotice message="Some documents may be stale. Pull to refresh and try again." />
       ) : null}
     </Screen>
   );
@@ -484,10 +489,5 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: theme.radii.sm,
     backgroundColor: theme.colors.surfaceSoft,
-  },
-  inlineError: {
-    color: theme.colors.warning,
-    fontSize: theme.typeScale.bodySmall.fontSize,
-    lineHeight: theme.typeScale.bodySmall.lineHeight,
   },
 });

@@ -18,6 +18,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  InlineNotice,
   Screen,
   StatusBadge,
 } from '@/components/ui';
@@ -211,6 +212,18 @@ export default function QuizzesScreen() {
         <View style={styles.inlineAlert}>
           <Text style={styles.inlineAlertText}>{quizError}</Text>
         </View>
+      ) : null}
+
+      {documentsError && documents.length > 0 ? (
+        <InlineNotice message="Document filters are showing cached data. Pull to refresh and try again." />
+      ) : null}
+
+      {quizzesError && quizzes.length > 0 ? (
+        <InlineNotice message="The quiz list is showing cached data. Pull to refresh and try again." />
+      ) : null}
+
+      {quizDetailError && quizDetail ? (
+        <InlineNotice message="The selected quiz is showing cached details. Pull to refresh and try again." />
       ) : null}
 
       <Card

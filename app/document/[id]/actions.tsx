@@ -13,7 +13,14 @@ import {
 } from '@/api/aiActionsApi';
 import { useGetDocumentQuery } from '@/api/documentsApi';
 import { CitationCard } from '@/components/chat';
-import { Button, Card, EmptyState, ErrorState, Screen } from '@/components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  InlineNotice,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
 
@@ -221,6 +228,14 @@ export default function DocumentActionsScreen() {
         <View style={styles.inlineAlert}>
           <Text style={styles.inlineAlertText}>{actionError}</Text>
         </View>
+      ) : null}
+
+      {documentError && document ? (
+        <InlineNotice message="This document is showing cached details. Pull to refresh and try again." />
+      ) : null}
+
+      {isDocumentReady && latestActionsError && latestActions ? (
+        <InlineNotice message="Saved AI actions are showing cached data. Pull to refresh and try again." />
       ) : null}
 
       {isDocumentReady ? (
