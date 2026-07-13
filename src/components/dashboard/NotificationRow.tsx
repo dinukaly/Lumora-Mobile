@@ -11,6 +11,8 @@ type NotificationRowProps = {
 export function NotificationRow({ item, onPress }: NotificationRowProps) {
   return (
     <Pressable
+      accessibilityHint="Opens the related notification details."
+      accessibilityLabel={`${item.readAt ? 'Read' : 'Unread'} notification. ${item.title}. ${item.body}. ${formatRelativeTime(item.createdAt)} ago.`}
       accessibilityRole="button"
       onPress={onPress ? () => onPress(item) : undefined}
       style={({ pressed }) => [

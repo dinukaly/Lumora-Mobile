@@ -22,7 +22,9 @@ export function ErrorState({
     <Card>
       <View style={styles.banner}>
         <Text style={styles.kicker}>Needs attention</Text>
-        <Text style={styles.title}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.title}>
+          {title}
+        </Text>
         <Text style={styles.description}>{description}</Text>
         {onRetry ? (
           <Button fullWidth variant="secondary" onPress={onRetry}>

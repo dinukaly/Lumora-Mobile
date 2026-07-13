@@ -31,6 +31,8 @@ export function TextField({
         {accessory}
       </View>
       <TextInput
+        accessibilityHint={inputProps.accessibilityHint ?? error ?? hint}
+        accessibilityLabel={inputProps.accessibilityLabel ?? label}
         placeholderTextColor={theme.colors.textSoft}
         selectionColor={theme.colors.brand}
         style={[

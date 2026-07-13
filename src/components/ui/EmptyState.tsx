@@ -27,7 +27,9 @@ export function EmptyState({
     <Card>
       <View style={styles.content}>
         {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={styles.title}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.title}>
+          {title}
+        </Text>
         <Text style={styles.description}>{description}</Text>
         {actionLabel ? (
           <Button fullWidth onPress={onAction}>

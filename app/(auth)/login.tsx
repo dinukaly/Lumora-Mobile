@@ -83,7 +83,9 @@ export default function LoginScreen() {
         <Card>
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>Lumora Mobile</Text>
-            <Text style={styles.title}>Welcome back</Text>
+            <Text accessibilityRole="header" style={styles.title}>
+              Welcome back
+            </Text>
             <Text style={styles.subtitle}>
               Sign in to continue studying with your documents, quizzes, and flashcards.
             </Text>
@@ -137,7 +139,7 @@ export default function LoginScreen() {
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don&apos;t have an account?</Text>
             <Link href="/(auth)/register" asChild>
-              <Pressable accessibilityRole="link">
+              <Pressable accessibilityLabel="Create an account" accessibilityRole="link" style={styles.footerLinkPressable}>
                 <Text style={styles.footerLink}>Create one</Text>
               </Pressable>
             </Link>
@@ -210,5 +212,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typeScale.bodySmall.fontSize,
     lineHeight: theme.typeScale.bodySmall.lineHeight,
     fontWeight: '700',
+  },
+  footerLinkPressable: {
+    minHeight: theme.layout.touchTarget,
+    justifyContent: 'center',
   },
 });

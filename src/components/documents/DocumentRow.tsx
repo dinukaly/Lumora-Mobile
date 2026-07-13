@@ -19,6 +19,8 @@ type DocumentRowProps = {
 export function DocumentRow({ document, onPress }: DocumentRowProps) {
   return (
     <Pressable
+      accessibilityHint="Opens the document overview and study tools."
+      accessibilityLabel={buildDocumentAccessibilityLabel(document)}
       accessibilityRole="button"
       onPress={onPress ? () => onPress(document) : undefined}
       style={({ pressed }) => [
@@ -88,6 +90,13 @@ function formatDate(value: string) {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function buildDocumentAccessibilityLabel(document: DocumentData) {
+  const statusLabel = STATUS_LABELS[document.status];
+  const pageLabel = document.pageCount ? `${document.pageCount} pages` : 'page count pending';
+
+  return `${document.title}. Status ${statusLabel}. ${pageLabel}. Created ${formatDate(document.createdAt)}.`;
 }
 
 const styles = StyleSheet.create({

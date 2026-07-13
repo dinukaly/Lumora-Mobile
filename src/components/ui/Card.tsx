@@ -13,7 +13,11 @@ export function Card({ children, title, description }: CardProps) {
     <View style={styles.card}>
       {title || description ? (
         <View style={styles.header}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
+          {title ? (
+            <Text accessibilityRole="header" style={styles.title}>
+              {title}
+            </Text>
+          ) : null}
           {description ? <Text style={styles.description}>{description}</Text> : null}
         </View>
       ) : null}

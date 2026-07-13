@@ -20,6 +20,8 @@ type ButtonProps = PropsWithChildren<{
   loading?: boolean;
   leftAccessory?: ReactNode;
   onPress?: () => void;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }>;
 
 const variantStyles = {
@@ -72,6 +74,8 @@ export function Button({
   loading = false,
   leftAccessory,
   onPress,
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const palette = variantStyles[variant];
   const sizing = sizeStyles[size];
@@ -79,7 +83,10 @@ export function Button({
 
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
       onPress={onPress}
       style={({ pressed }) => [

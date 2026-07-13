@@ -15,6 +15,7 @@ export function StatusBadge({ label, tone = 'INFO' }: StatusBadgeProps) {
 
   return (
     <View
+      accessibilityLabel={`Status: ${label}`}
       style={[
         styles.badge,
         {

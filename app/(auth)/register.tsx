@@ -96,7 +96,9 @@ export default function RegisterScreen() {
         <Card>
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>Lumora Mobile</Text>
-            <Text style={styles.title}>Create your account</Text>
+            <Text accessibilityRole="header" style={styles.title}>
+              Create your account
+            </Text>
             <Text style={styles.subtitle}>
               Start turning PDFs into grounded summaries, questions, quizzes, and flashcards.
             </Text>
@@ -171,7 +173,7 @@ export default function RegisterScreen() {
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account?</Text>
             <Link href="/(auth)/login" asChild>
-              <Pressable accessibilityRole="link">
+              <Pressable accessibilityLabel="Sign in to an existing account" accessibilityRole="link" style={styles.footerLinkPressable}>
                 <Text style={styles.footerLink}>Sign in</Text>
               </Pressable>
             </Link>
@@ -257,5 +259,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typeScale.bodySmall.fontSize,
     lineHeight: theme.typeScale.bodySmall.lineHeight,
     fontWeight: '700',
+  },
+  footerLinkPressable: {
+    minHeight: theme.layout.touchTarget,
+    justifyContent: 'center',
   },
 });
