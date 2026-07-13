@@ -214,7 +214,7 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   headerButton: {
-    minHeight: 40,
+    minHeight: theme.layout.touchTarget,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     borderColor: theme.colors.border,

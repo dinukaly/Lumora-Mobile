@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   filterChip: {
-    minHeight: 38,
+    minHeight: theme.layout.touchTarget,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     borderColor: theme.colors.border,

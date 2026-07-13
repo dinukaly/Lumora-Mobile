@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceElevated,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
-    minHeight: 40,
+    minHeight: theme.layout.touchTarget,
     justifyContent: 'center',
   },
   filterChipSelected: {
