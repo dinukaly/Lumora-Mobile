@@ -17,6 +17,7 @@ export function PushNotificationsBridge({ children }: PropsWithChildren) {
   const [registerPushToken] = useRegisterPushTokenMutation();
   const [removePushToken] = useRemovePushTokenMutation();
   const syncPromiseRef = useRef<Promise<void> | null>(null);
+  const pushEndpointUnavailableRef = useRef(false);
   const syncStateRef = useRef({
     isAuthenticated,
     userId,
@@ -37,7 +38,8 @@ export function PushNotificationsBridge({ children }: PropsWithChildren) {
       if (
         !currentState.isAuthenticated ||
         !currentState.userId ||
-        syncPromiseRef.current
+        syncPromiseRef.current ||
+        pushEndpointUnavailableRef.current
       ) {
         return;
       }
@@ -55,6 +57,16 @@ export function PushNotificationsBridge({ children }: PropsWithChildren) {
               await removePushToken({ token }).unwrap();
             },
           });
+        } catch (error) {
+          if (isPushTokenEndpointUnavailable(error)) {
+            pushEndpointUnavailableRef.current = true;
+            console.warn(
+              'Push token registration endpoint is unavailable on the current backend. Deploy the backend push-token routes before testing mobile push notifications.',
+            );
+            return;
+          }
+
+          console.warn('Push token registration failed', error);
         } finally {
           syncPromiseRef.current = null;
         }
@@ -81,4 +93,17 @@ export function PushNotificationsBridge({ children }: PropsWithChildren) {
   });
 
   return <>{children}</>;
+}
+
+function isPushTokenEndpointUnavailable(error: unknown) {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+
+  return (
+    'status' in error &&
+    error.status === 'PARSING_ERROR' &&
+    'originalStatus' in error &&
+    error.originalStatus === 404
+  );
 }
