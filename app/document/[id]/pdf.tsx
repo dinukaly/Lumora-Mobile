@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import * as Linking from 'expo-linking';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetDocumentQuery } from '@/api/documentsApi';
 import { PdfCanvas } from '@/components/pdf/PdfCanvas';
@@ -178,13 +178,15 @@ export default function DocumentPdfScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text numberOfLines={1} style={styles.title}>
+            <Text accessibilityRole="header" numberOfLines={1} style={styles.title}>
               {viewerTitle}
             </Text>
             <Text style={styles.subtitle}>{headerCaption}</Text>
           </View>
           <View style={styles.headerActions}>
             <Pressable
+              accessibilityHint="Returns to the document overview screen."
+              accessibilityLabel="Open document overview"
               accessibilityRole="button"
               onPress={() => router.push({ pathname: '/document/[id]', params: { id: documentId } })}
               style={({ pressed }) => [
@@ -195,7 +197,10 @@ export default function DocumentPdfScreen() {
               <Text style={styles.headerChipText}>Overview</Text>
             </Pressable>
             <Pressable
+              accessibilityHint="Downloads a fresh copy of the PDF and reloads the viewer."
+              accessibilityLabel="Reload PDF"
               accessibilityRole="button"
+              accessibilityState={{ disabled: isDownloading, busy: isDownloading }}
               disabled={isDownloading}
               onPress={() => void loadPdf(true)}
               style={({ pressed }) => [
@@ -352,7 +357,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   headerChip: {
-    minHeight: 40,
+    minHeight: theme.layout.touchTarget,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     borderColor: theme.colors.border,

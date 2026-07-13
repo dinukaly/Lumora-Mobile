@@ -1,12 +1,12 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import {
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { theme } from '@/theme';
 
@@ -33,7 +33,11 @@ export function Screen({
       {(title || subtitle || headerRight) && (
         <View style={styles.header}>
           <View style={styles.headerText}>
-            {title ? <Text style={styles.title}>{title}</Text> : null}
+            {title ? (
+              <Text accessibilityRole="header" style={styles.title}>
+                {title}
+              </Text>
+            ) : null}
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           </View>
           {headerRight ? <View style={styles.headerRight}>{headerRight}</View> : null}
