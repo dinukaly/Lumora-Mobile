@@ -53,6 +53,10 @@ export type LogoutRequest = {
   refreshToken: string;
 };
 
+export type PushTokenRequest = {
+  token: string;
+};
+
 function normalizeUser(user: RawUser): User {
   return {
     ...user,
@@ -155,6 +159,26 @@ export const authApi = apiSlice.injectEndpoints({
         }
       },
     }),
+    registerPushToken: builder.mutation<
+      { message: string; tokenCount: number },
+      PushTokenRequest
+    >({
+      query: (payload) => ({
+        url: '/users/me/push-tokens',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+    removePushToken: builder.mutation<
+      { message: string; tokenCount: number },
+      PushTokenRequest
+    >({
+      query: (payload) => ({
+        url: '/users/me/push-tokens',
+        method: 'DELETE',
+        body: payload,
+      }),
+    }),
     getProfile: builder.query<User, void>({
       query: () => '/users/me',
       transformResponse: (response: RawUser) => normalizeUser(response),
@@ -168,6 +192,8 @@ export const {
   useLazyGetProfileQuery,
   useLoginMutation,
   useLogoutMutation,
+  useRegisterPushTokenMutation,
   useRefreshTokenMutation,
+  useRemovePushTokenMutation,
   useRegisterMutation,
 } = authApi;

@@ -22,7 +22,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png",
         "backgroundColor": "#031412"
       },
-      "package": "com.anonymous.lumoramobile"
+      "package": "com.anonymous.lumoramobile",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -30,6 +31,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       "expo-secure-store",
       "expo-sharing"
     ],
