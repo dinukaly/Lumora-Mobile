@@ -7,6 +7,7 @@ type QuizQuestionCardProps = {
   question: QuizQuestion;
   questionNumber: number;
   selectedOption?: number;
+  missingAnswer?: boolean;
   onSelectOption: (optionIndex: number) => void;
 };
 
@@ -14,12 +15,23 @@ export function QuizQuestionCard({
   question,
   questionNumber,
   selectedOption,
+  missingAnswer = false,
   onSelectOption,
 }: QuizQuestionCardProps) {
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        missingAnswer ? styles.cardMissingAnswer : null,
+      ]}
+    >
       <View style={styles.header}>
         <Text style={styles.eyebrow}>Question {questionNumber}</Text>
+        {missingAnswer ? (
+          <Text style={styles.validationBadge}>Answer required</Text>
+        ) : null}
+      </View>
+      <View style={styles.questionBlock}>
         <Text style={styles.questionText}>{question.question}</Text>
       </View>
 
@@ -65,6 +77,12 @@ export function QuizQuestionCard({
           );
         })}
       </View>
+
+      {missingAnswer ? (
+        <Text style={styles.validationText}>
+          Choose one option before submitting this quiz.
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -79,7 +97,18 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.lg,
     gap: theme.spacing.lg,
   },
+  cardMissingAnswer: {
+    borderColor: theme.colors.warning,
+    backgroundColor: theme.colors.warningSoft,
+  },
   header: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing.sm,
+  },
+  questionBlock: {
     gap: theme.spacing.sm,
   },
   eyebrow: {
@@ -89,6 +118,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     fontWeight: '700',
+  },
+  validationBadge: {
+    color: '#92400E',
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   questionText: {
     color: theme.colors.text,
@@ -148,5 +185,11 @@ const styles = StyleSheet.create({
   },
   optionTextSelected: {
     color: theme.colors.text,
+  },
+  validationText: {
+    color: '#92400E',
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
+    fontWeight: '600',
   },
 });

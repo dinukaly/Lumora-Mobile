@@ -49,6 +49,7 @@ export default function QuizzesScreen() {
     Record<string, QuizSubmissionResult | null>
   >({});
   const [quizError, setQuizError] = useState<string | null>(null);
+  const [showValidationState, setShowValidationState] = useState(false);
 
   const {
     data: documentsData,
@@ -99,6 +100,14 @@ export default function QuizzesScreen() {
   const answeredCount = quizDetail?.questions.reduce((count, question) => {
     return activeAnswers[question.id] == null ? count : count + 1;
   }, 0) ?? 0;
+  const unansweredQuestionIds =
+    showValidationState && quizDetail
+      ? quizDetail.questions
+          .filter((question) => activeAnswers[question.id] == null)
+          .map((question) => question.id)
+      : [];
+  const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+  const isSubmitReady = totalQuestions > 0 && unansweredCount === 0;
   const averageScore = quizzes.length
     ? Math.round(
         quizzes.reduce((total, quiz) => {
@@ -130,11 +139,21 @@ export default function QuizzesScreen() {
       return;
     }
 
-    if (quizDetail.questions.some((question) => activeAnswers[question.id] == null)) {
-      setQuizError('Select an answer for every question before submitting.');
+    const missingQuestionIds = quizDetail.questions
+      .filter((question) => activeAnswers[question.id] == null)
+      .map((question) => question.id);
+
+    if (missingQuestionIds.length > 0) {
+      setShowValidationState(true);
+      setQuizError(
+        missingQuestionIds.length === 1
+          ? 'Answer the remaining question before submitting.'
+          : `Answer the remaining ${missingQuestionIds.length} questions before submitting.`,
+      );
       return;
     }
 
+    setShowValidationState(false);
     setQuizError(null);
 
     try {
@@ -160,6 +179,7 @@ export default function QuizzesScreen() {
   function handleSelectQuiz(quizId: string) {
     setSelectedQuizId(quizId);
     setQuizError(null);
+    setShowValidationState(false);
   }
 
   function handleSelectAnswer(questionId: number, optionIndex: number) {
@@ -183,6 +203,7 @@ export default function QuizzesScreen() {
     }
 
     setQuizError(null);
+    setShowValidationState(false);
     setAnswersByQuizId((current: Record<string, Record<number, number>>) => ({
       ...current,
       [resolvedQuizId]: {},
@@ -459,10 +480,27 @@ export default function QuizzesScreen() {
               </Text>
             </View>
 
+            {unansweredCount > 0 ? (
+              <InlineNotice
+                message={
+                  unansweredCount === 1
+                    ? 'Answer 1 more question to unlock quiz submission.'
+                    : `Answer ${unansweredCount} more questions to unlock quiz submission.`
+                }
+                tone="warning"
+              />
+            ) : (
+              <InlineNotice
+                message="All questions are answered. You can submit the quiz now."
+                tone="success"
+              />
+            )}
+
             <View style={styles.questionList}>
               {quizDetail.questions.map((question, index) => (
                 <QuizQuestionCard
                   key={question.id}
+                  missingAnswer={unansweredQuestionIds.includes(question.id)}
                   question={question}
                   questionNumber={index + 1}
                   selectedOption={activeAnswers[question.id]}
@@ -479,10 +517,10 @@ export default function QuizzesScreen() {
               </Text>
               <Button
                 loading={isSubmitting}
-                disabled={totalQuestions === 0}
+                disabled={totalQuestions === 0 || !isSubmitReady}
                 onPress={() => void handleSubmitQuiz()}
               >
-                Submit quiz
+                {isSubmitReady ? 'Submit quiz' : 'Complete all answers first'}
               </Button>
             </View>
           </View>
