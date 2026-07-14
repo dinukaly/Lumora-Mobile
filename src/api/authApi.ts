@@ -12,6 +12,7 @@ export type User = {
   avatar?: string;
   preferences?: Record<string, unknown>;
   lastLoginAt?: string;
+  emailVerifiedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -55,6 +56,10 @@ export type LogoutRequest = {
 
 export type PushTokenRequest = {
   token: string;
+};
+
+export type VerifyEmailResponse = {
+  message: string;
 };
 
 function normalizeUser(user: RawUser): User {
@@ -159,6 +164,18 @@ export const authApi = apiSlice.injectEndpoints({
         }
       },
     }),
+    resendVerificationEmail: builder.mutation<{ message: string }, void>({
+      query: () => ({
+        url: '/auth/verification/resend',
+        method: 'POST',
+      }),
+    }),
+    verifyEmail: builder.mutation<VerifyEmailResponse, string>({
+      query: (token) => ({
+        url: `/auth/verification/verify?token=${encodeURIComponent(token)}`,
+        method: 'GET',
+      }),
+    }),
     registerPushToken: builder.mutation<
       { message: string; tokenCount: number },
       PushTokenRequest
@@ -195,5 +212,7 @@ export const {
   useRegisterPushTokenMutation,
   useRefreshTokenMutation,
   useRemovePushTokenMutation,
+  useResendVerificationEmailMutation,
   useRegisterMutation,
+  useVerifyEmailMutation,
 } = authApi;
