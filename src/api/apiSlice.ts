@@ -13,18 +13,9 @@ import {
   getRefreshToken,
   saveRefreshToken,
 } from '@/auth/tokenStorage';
+import { resolveApiBaseUrl } from '@/api/apiConfig';
 import { disconnectSocket } from '@/realtime/socketClient';
 import type { RootState } from '@/store/store';
-
-const FALLBACK_API_BASE_URL = 'http://localhost:5000/api/v1';
-
-export function resolveApiBaseUrl() {
-  const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
-
-  return configuredUrl
-    ? configuredUrl.replace(/\/$/, '')
-    : FALLBACK_API_BASE_URL;
-}
 
 const baseQuery = fetchBaseQuery({
   baseUrl: resolveApiBaseUrl(),

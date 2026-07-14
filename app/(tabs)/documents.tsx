@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { apiSlice, resolveApiBaseUrl } from '@/api/apiSlice';
+import { resolveApiBaseUrl } from '@/api/apiConfig';
+import { apiSlice } from '@/api/apiSlice';
 import {
   type DocumentData,
   type DocumentStatus,

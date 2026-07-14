@@ -1,7 +1,7 @@
 import { Directory, File, Paths, type DownloadProgress } from 'expo-file-system';
 import { Platform } from 'react-native';
 
-import { resolveApiBaseUrl } from '@/api/apiSlice';
+import { resolveApiBaseUrl } from '@/api/apiConfig';
 
 const PDF_CACHE_DIRECTORY_NAME = 'lumora-pdfs';
 

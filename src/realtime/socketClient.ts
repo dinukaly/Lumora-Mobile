@@ -1,6 +1,6 @@
 import { io, type Socket } from 'socket.io-client';
 
-import { resolveApiBaseUrl } from '@/api/apiSlice';
+import { resolveSocketBaseUrl } from '@/api/apiConfig';
 
 export const REALTIME_EVENTS = {
   notificationNew: 'notification:new',
@@ -62,8 +62,4 @@ export function disconnectSocket() {
   }
 
   currentToken = null;
-}
-
-function resolveSocketBaseUrl() {
-  return resolveApiBaseUrl().replace(/\/api\/v1$/, '');
 }

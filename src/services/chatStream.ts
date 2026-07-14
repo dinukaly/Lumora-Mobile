@@ -1,6 +1,6 @@
 import { fetch } from 'expo/fetch';
 
-import { resolveApiBaseUrl } from '@/api/apiSlice';
+import { resolveApiBaseUrl } from '@/api/apiConfig';
 import type {
   MessageCitation,
   MessageTokenUsage,
