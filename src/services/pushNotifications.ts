@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 
@@ -22,6 +23,18 @@ type PushRegistrationStatus =
   | 'unsupported'
   | 'permission-denied'
   | 'project-id-missing';
+
+async function canUseSecureStore() {
+  if (Platform.OS === 'web') {
+    return false;
+  }
+
+  try {
+    return await SecureStore.isAvailableAsync();
+  } catch {
+    return false;
+  }
+}
 
 export async function syncPushTokenRegistration(options: {
   userId: string;
@@ -152,6 +165,22 @@ function resolveProjectId() {
 }
 
 async function saveStoredPushRegistration(registration: StoredPushRegistration) {
+  if (await canUseSecureStore()) {
+    if (registration.token) {
+      await SecureStore.setItemAsync(PUSH_TOKEN_KEY, registration.token);
+    } else {
+      await SecureStore.deleteItemAsync(PUSH_TOKEN_KEY);
+    }
+
+    if (registration.userId) {
+      await SecureStore.setItemAsync(PUSH_USER_ID_KEY, registration.userId);
+    } else {
+      await SecureStore.deleteItemAsync(PUSH_USER_ID_KEY);
+    }
+
+    return;
+  }
+
   const webStorage = getWebStorage();
 
   if (webStorage) {
@@ -173,6 +202,18 @@ async function saveStoredPushRegistration(registration: StoredPushRegistration) 
 }
 
 async function getStoredPushRegistration(): Promise<StoredPushRegistration> {
+  if (await canUseSecureStore()) {
+    const [token, userId] = await Promise.all([
+      SecureStore.getItemAsync(PUSH_TOKEN_KEY),
+      SecureStore.getItemAsync(PUSH_USER_ID_KEY),
+    ]);
+
+    return {
+      token,
+      userId,
+    };
+  }
+
   const webStorage = getWebStorage();
 
   if (webStorage) {
