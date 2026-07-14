@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
       onRefresh={handleRefresh}
       headerRight={
         <Pressable
+          accessibilityLabel="Open notifications"
           accessibilityRole="button"
           onPress={() => router.push('/notifications')}
           style={({ pressed }) => [
@@ -78,7 +80,11 @@ export default function DashboardScreen() {
             pressed ? styles.headerButtonPressed : null,
           ]}
         >
-          <Text style={styles.headerButtonText}>Inbox</Text>
+          <Ionicons
+            color={theme.colors.text}
+            name="notifications-outline"
+            size={20}
+          />
           {unreadCount > 0 ? (
             <View style={styles.headerBadge}>
               <Text style={styles.headerBadgeText}>
@@ -217,24 +223,19 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   headerButton: {
+    width: theme.layout.touchTarget,
     minHeight: theme.layout.touchTarget,
-    borderRadius: theme.radii.pill,
+    borderRadius: theme.layout.touchTarget / 2,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surfaceElevated,
-    paddingHorizontal: theme.spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    justifyContent: 'center',
+    position: 'relative',
+    flexShrink: 0,
   },
   headerButtonPressed: {
     opacity: 0.84,
-  },
-  headerButtonText: {
-    color: theme.colors.text,
-    fontSize: theme.typeScale.bodySmall.fontSize,
-    lineHeight: theme.typeScale.bodySmall.lineHeight,
-    fontWeight: '700',
   },
   headerBadge: {
     minWidth: 20,
@@ -244,6 +245,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
+    position: 'absolute',
+    top: -4,
+    right: -4,
   },
   headerBadgeText: {
     color: '#FFFFFF',
