@@ -77,6 +77,10 @@ export default function DocumentsScreen() {
   );
   const isUploadBusy =
     uploadState.status === 'picking' || uploadState.status === 'uploading';
+  const listErrorState = error ? getApiFormErrorState(error) : null;
+  const requiresEmailVerification =
+    listErrorState?.errorCode === 'EMAIL_UNVERIFIED' ||
+    listErrorState?.formError === 'Verify your email to unlock this feature.';
 
   function handleRefresh() {
     if (!hasActiveSession) {
@@ -242,7 +246,23 @@ export default function DocumentsScreen() {
         </View>
       ) : null}
 
-      {!isLoading && error && documents.length === 0 ? (
+      {!isLoading &&
+      error &&
+      documents.length === 0 &&
+      requiresEmailVerification ? (
+        <EmptyState
+          eyebrow="Verification required"
+          title="Verify your email to unlock documents"
+          description="New accounts need email verification before document uploads and library access are enabled. Check your inbox, verify your address, then come back here and refresh."
+          actionLabel="Refresh library"
+          onAction={handleRefresh}
+        />
+      ) : null}
+
+      {!isLoading &&
+      error &&
+      documents.length === 0 &&
+      !requiresEmailVerification ? (
         <ErrorState
           title="Documents unavailable"
           description="We could not load your document library right now."
