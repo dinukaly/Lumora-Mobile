@@ -9,6 +9,7 @@ import {
   type DocumentStatus,
   useListDocumentsQuery,
 } from '@/api/documentsApi';
+import { isEmailVerified } from '@/auth/emailVerification';
 import { DocumentRow } from '@/components/documents';
 import {
   Button,
@@ -49,9 +50,11 @@ const INITIAL_UPLOAD_STATE: UploadState = {
 export default function DocumentsScreen() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const user = useAppSelector((state) => state.auth.user);
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const hasActiveSession = Boolean(isAuthenticated && accessToken);
+  const emailVerified = isEmailVerified(user);
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | undefined>();
   const [uploadState, setUploadState] = useState<UploadState>(
     INITIAL_UPLOAD_STATE,
@@ -68,7 +71,7 @@ export default function DocumentsScreen() {
     limit: PAGE_SIZE,
     status: statusFilter,
   }, {
-    skip: !hasActiveSession,
+    skip: !hasActiveSession || !emailVerified,
   });
 
   const documents = data?.documents ?? [];
@@ -92,6 +95,14 @@ export default function DocumentsScreen() {
 
   async function handleUploadPress() {
     if (isUploadBusy || !hasActiveSession) {
+      return;
+    }
+
+    if (!emailVerified) {
+      router.push({
+        pathname: '/verify-email/pending',
+        params: { from: '/documents' },
+      });
       return;
     }
 
@@ -199,6 +210,22 @@ export default function DocumentsScreen() {
         />
       ) : null}
 
+      {!emailVerified ? (
+        <EmptyState
+          eyebrow="Verification required"
+          title="Verify your email to unlock documents"
+          description="New accounts need email verification before document uploads and library access are enabled. Check your inbox, verify your address, then come back here."
+          actionLabel="Open verification help"
+          onAction={() =>
+            router.push({
+              pathname: '/verify-email/pending',
+              params: { from: '/documents' },
+            })
+          }
+        />
+      ) : null}
+
+      {emailVerified ? (
       <View style={styles.filterRow}>
         {STATUS_FILTERS.map((filter) => {
           const selected = filter.value === statusFilter;
@@ -226,15 +253,16 @@ export default function DocumentsScreen() {
           );
         })}
       </View>
+      ) : null}
 
-      {data?.pagination ? (
+      {emailVerified && data?.pagination ? (
         <Text style={styles.summaryText}>
           Showing {documents.length} of {data.pagination.total} documents
           {hasMorePages ? ' - More pages available' : ''}
         </Text>
       ) : null}
 
-      {isLoading && documents.length === 0 ? (
+      {emailVerified && isLoading && documents.length === 0 ? (
         <View style={styles.list}>
           {Array.from({ length: 4 }).map((_, index) => (
             <Card key={index}>
@@ -246,7 +274,8 @@ export default function DocumentsScreen() {
         </View>
       ) : null}
 
-      {!isLoading &&
+      {emailVerified &&
+      !isLoading &&
       error &&
       documents.length === 0 &&
       requiresEmailVerification ? (
@@ -264,7 +293,8 @@ export default function DocumentsScreen() {
         />
       ) : null}
 
-      {!isLoading &&
+      {emailVerified &&
+      !isLoading &&
       error &&
       documents.length === 0 &&
       !requiresEmailVerification ? (
@@ -275,7 +305,7 @@ export default function DocumentsScreen() {
         />
       ) : null}
 
-      {!isLoading && !error && documents.length === 0 ? (
+      {emailVerified && !isLoading && !error && documents.length === 0 ? (
         <EmptyState
           eyebrow="No documents yet"
           title="Your library is empty"
@@ -285,7 +315,7 @@ export default function DocumentsScreen() {
         />
       ) : null}
 
-      {documents.length > 0 ? (
+      {emailVerified && documents.length > 0 ? (
         <View style={styles.list}>
           {documents.map((document) => (
             <DocumentRow
@@ -297,7 +327,7 @@ export default function DocumentsScreen() {
         </View>
       ) : null}
 
-      {error && documents.length > 0 ? (
+      {emailVerified && error && documents.length > 0 ? (
         <InlineNotice message="Some documents may be stale. Pull to refresh and try again." />
       ) : null}
     </Screen>

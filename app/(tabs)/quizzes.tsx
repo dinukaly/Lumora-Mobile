@@ -6,6 +6,7 @@ import {
   type DocumentData,
   useListDocumentsQuery,
 } from '@/api/documentsApi';
+import { isEmailVerified } from '@/auth/emailVerification';
 import {
   useGetQuizQuery,
   useListQuizzesQuery,
@@ -22,6 +23,7 @@ import {
   Screen,
   StatusBadge,
 } from '@/components/ui';
+import { useAppSelector } from '@/store/hooks';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
 
@@ -36,6 +38,8 @@ const STATUS_LABELS: Record<DocumentData['status'], string> = {
 
 export default function QuizzesScreen() {
   const router = useRouter();
+  const user = useAppSelector((state) => state.auth.user);
+  const emailVerified = isEmailVerified(user);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | undefined>();
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [answersByQuizId, setAnswersByQuizId] = useState<
@@ -55,6 +59,8 @@ export default function QuizzesScreen() {
   } = useListDocumentsQuery({
     page: 1,
     limit: DOCUMENT_PAGE_SIZE,
+  }, {
+    skip: !emailVerified,
   });
   const {
     data: quizzesData,
@@ -64,6 +70,8 @@ export default function QuizzesScreen() {
     refetch: refetchQuizzes,
   } = useListQuizzesQuery({
     documentId: selectedDocumentId,
+  }, {
+    skip: !emailVerified,
   });
 
   const documents = documentsData?.documents ?? [];
@@ -78,7 +86,7 @@ export default function QuizzesScreen() {
     isFetching: quizDetailFetching,
     refetch: refetchQuizDetail,
   } = useGetQuizQuery(resolvedQuizId ?? '', {
-    skip: !resolvedQuizId,
+    skip: !emailVerified || !resolvedQuizId,
   });
   const [submitQuiz, { isLoading: isSubmitting }] = useSubmitQuizMutation();
 
@@ -214,18 +222,34 @@ export default function QuizzesScreen() {
         </View>
       ) : null}
 
-      {documentsError && documents.length > 0 ? (
+      {!emailVerified ? (
+        <EmptyState
+          eyebrow="Verification required"
+          title="Verify your email to unlock quizzes"
+          description="Quiz practice stays locked until your account email is verified."
+          actionLabel="Open verification help"
+          onAction={() =>
+            router.push({
+              pathname: '/verify-email/pending',
+              params: { from: '/quizzes' },
+            })
+          }
+        />
+      ) : null}
+
+      {emailVerified && documentsError && documents.length > 0 ? (
         <InlineNotice message="Document filters are showing cached data. Pull to refresh and try again." />
       ) : null}
 
-      {quizzesError && quizzes.length > 0 ? (
+      {emailVerified && quizzesError && quizzes.length > 0 ? (
         <InlineNotice message="The quiz list is showing cached data. Pull to refresh and try again." />
       ) : null}
 
-      {quizDetailError && quizDetail ? (
+      {emailVerified && quizDetailError && quizDetail ? (
         <InlineNotice message="The selected quiz is showing cached details. Pull to refresh and try again." />
       ) : null}
 
+      {emailVerified ? (
       <Card
         title="Filters"
         description="Browse quizzes from every document or narrow the list to one document."
@@ -256,7 +280,9 @@ export default function QuizzesScreen() {
           </Text>
         ) : null}
       </Card>
+      ) : null}
 
+      {emailVerified ? (
       <View style={styles.metricGrid}>
         <MetricCard
           title="Quizzes"
@@ -274,8 +300,9 @@ export default function QuizzesScreen() {
           description="Based on the latest saved attempt per quiz"
         />
       </View>
+      ) : null}
 
-      {selectedDocument && selectedDocument.status !== 'READY' ? (
+      {emailVerified && selectedDocument && selectedDocument.status !== 'READY' ? (
         <EmptyState
           eyebrow="Document locked"
           title="This document is not ready for new quiz generation"
@@ -297,6 +324,7 @@ export default function QuizzesScreen() {
         />
       ) : null}
 
+      {emailVerified ? (
       <Card
         title="Quiz list"
         description="Select a quiz to answer its questions and review the scored result."
@@ -377,7 +405,9 @@ export default function QuizzesScreen() {
           </View>
         ) : null}
       </Card>
+      ) : null}
 
+      {emailVerified ? (
       <Card
         title={selectedQuiz?.title ?? 'Quiz session'}
         description={
@@ -458,8 +488,9 @@ export default function QuizzesScreen() {
           </View>
         ) : null}
       </Card>
+      ) : null}
 
-      {selectedDocument ? (
+      {emailVerified && selectedDocument ? (
         <Card
           title="Source document"
           description="Open the matching document workspace when you want to continue studying in context."

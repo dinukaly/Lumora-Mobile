@@ -18,6 +18,11 @@ export default function ProfileScreen() {
   const [resendVerificationEmail, { isLoading: isResendingVerification }] =
     useResendVerificationEmailMutation();
   const emailVerified = Boolean(user?.emailVerifiedAt);
+  const accountTypeLabel = user?.role === 'ADMIN' ? 'Admin' : 'Learner';
+  const accessStatusLabel = emailVerified ? 'Unlocked' : 'Verify email';
+  const accessStatusHint = emailVerified
+    ? 'All learning tools are available.'
+    : 'Documents and study tools unlock after verification.';
 
   async function handleLogout() {
     setLogoutError(null);
@@ -47,9 +52,9 @@ export default function ProfileScreen() {
   return (
     <Screen
       title="Profile"
-      subtitle="Manage your current session, verification status, and the basics of your Lumora account."
+      subtitle="View your account details and keep your learning access up to date."
     >
-      <Card title="Account summary">
+      <Card title="Your account">
         <View style={styles.summaryRow}>
           <View style={styles.summaryIcon}>
             <Ionicons
@@ -68,30 +73,32 @@ export default function ProfileScreen() {
 
         <View style={styles.metaGrid}>
           <View style={styles.metaCard}>
-            <Text style={styles.metaLabel}>Role</Text>
-            <Text style={styles.metaValue}>{user?.role ?? 'USER'}</Text>
+            <Text style={styles.metaLabel}>Account type</Text>
+            <Text style={styles.metaValue}>{accountTypeLabel}</Text>
+            <Text style={styles.metaHint}>Your personal Lumora workspace.</Text>
           </View>
           <View style={styles.metaCard}>
-            <Text style={styles.metaLabel}>Email status</Text>
+            <Text style={styles.metaLabel}>Learning access</Text>
             <Text
               style={[
                 styles.metaValue,
                 emailVerified ? styles.metaValueSuccess : styles.metaValueWarning,
               ]}
             >
-              {emailVerified ? 'Verified' : 'Pending'}
+              {accessStatusLabel}
             </Text>
+            <Text style={styles.metaHint}>{accessStatusHint}</Text>
           </View>
         </View>
       </Card>
 
       {!emailVerified ? (
         <Card
-          title="Email verification"
-          description="Learning features stay locked until your email address is verified."
+          title="Verify your email"
+          description="Confirm your email address to unlock documents, quizzes, flashcards, and AI study tools."
         >
           <Text style={styles.supportingText}>
-            We&apos;ll send the verification link to {user?.email ?? 'your account email'}.
+            We&apos;ll send a fresh verification link to {user?.email ?? 'your account email'}.
           </Text>
           {verificationMessage ? (
             <View style={styles.successBanner}>
@@ -106,14 +113,14 @@ export default function ProfileScreen() {
             loading={isResendingVerification}
             onPress={() => void handleResendVerification()}
           >
-            {isResendingVerification ? 'Sending email...' : 'Resend verification email'}
+            {isResendingVerification ? 'Sending email...' : 'Send verification email again'}
           </Button>
         </Card>
       ) : null}
 
       <Card
-        title="Session controls"
-        description="Logging out clears Redux auth state, SecureStore refresh tokens, and RTK Query cache."
+        title="Sign out"
+        description="Sign out of this device when you&apos;re finished using Lumora."
       >
         {logoutError ? <Text style={styles.errorText}>{logoutError}</Text> : null}
         <Button
@@ -185,6 +192,11 @@ const styles = StyleSheet.create({
     fontSize: theme.typeScale.body.fontSize,
     lineHeight: theme.typeScale.body.lineHeight,
     fontWeight: '700',
+  },
+  metaHint: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
   },
   metaValueSuccess: {
     color: theme.colors.success,

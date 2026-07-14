@@ -6,6 +6,7 @@ import {
   type DocumentData,
   useListDocumentsQuery,
 } from '@/api/documentsApi';
+import { isEmailVerified } from '@/auth/emailVerification';
 import {
   type FlashcardDifficulty,
   useListFlashcardsQuery,
@@ -21,6 +22,7 @@ import {
   Screen,
   StatusBadge,
 } from '@/components/ui';
+import { useAppSelector } from '@/store/hooks';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
 
@@ -36,6 +38,8 @@ const STATUS_LABELS: Record<DocumentData['status'], string> = {
 
 export default function FlashcardsScreen() {
   const router = useRouter();
+  const user = useAppSelector((state) => state.auth.user);
+  const emailVerified = isEmailVerified(user);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | undefined>();
   const [dueOnly, setDueOnly] = useState(true);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
@@ -51,6 +55,8 @@ export default function FlashcardsScreen() {
   } = useListDocumentsQuery({
     page: 1,
     limit: DOCUMENT_PAGE_SIZE,
+  }, {
+    skip: !emailVerified,
   });
   const {
     data: allCardsData,
@@ -62,6 +68,8 @@ export default function FlashcardsScreen() {
     documentId: selectedDocumentId,
     page: 1,
     limit: FLASHCARD_PAGE_SIZE,
+  }, {
+    skip: !emailVerified,
   });
   const {
     data: visibleCardsData,
@@ -74,6 +82,8 @@ export default function FlashcardsScreen() {
     dueOnly,
     page: 1,
     limit: FLASHCARD_PAGE_SIZE,
+  }, {
+    skip: !emailVerified,
   });
   const {
     data: dueCardsData,
@@ -84,6 +94,8 @@ export default function FlashcardsScreen() {
     dueOnly: true,
     page: 1,
     limit: 1,
+  }, {
+    skip: !emailVerified,
   });
   const [reviewFlashcard, { isLoading: isReviewing }] =
     useReviewFlashcardMutation();
@@ -205,14 +217,30 @@ export default function FlashcardsScreen() {
         </View>
       ) : null}
 
-      {documentsError && documents.length > 0 ? (
+      {!emailVerified ? (
+        <EmptyState
+          eyebrow="Verification required"
+          title="Verify your email to unlock flashcards"
+          description="Flashcard study stays locked until your account email is verified."
+          actionLabel="Open verification help"
+          onAction={() =>
+            router.push({
+              pathname: '/verify-email/pending',
+              params: { from: '/flashcards' },
+            })
+          }
+        />
+      ) : null}
+
+      {emailVerified && documentsError && documents.length > 0 ? (
         <InlineNotice message="Document filters are showing cached data. Pull to refresh and try again." />
       ) : null}
 
-      {cardLoadError && (allCardsData || visibleCardsData) ? (
+      {emailVerified && cardLoadError && (allCardsData || visibleCardsData) ? (
         <InlineNotice message="Flashcards are showing cached data. Pull to refresh and try again." />
       ) : null}
 
+      {emailVerified ? (
       <Card
         title="Filters"
         description="Review every due card or narrow the deck to one document."
@@ -264,7 +292,9 @@ export default function FlashcardsScreen() {
           </Text>
         ) : null}
       </Card>
+      ) : null}
 
+      {emailVerified ? (
       <View style={styles.metricGrid}>
         <MetricCard
           title="Total cards"
@@ -286,8 +316,9 @@ export default function FlashcardsScreen() {
           }
         />
       </View>
+      ) : null}
 
-      {selectedDocument && selectedDocument.status !== 'READY' ? (
+      {emailVerified && selectedDocument && selectedDocument.status !== 'READY' ? (
         <EmptyState
           eyebrow="Not ready yet"
           title="This document is not ready for flashcard study"
@@ -309,6 +340,7 @@ export default function FlashcardsScreen() {
         />
       ) : null}
 
+      {emailVerified ? (
       <Card
         title="Review deck"
         description="Reveal the answer, then score how well you remembered it."
@@ -393,8 +425,9 @@ export default function FlashcardsScreen() {
           </View>
         ) : null}
       </Card>
+      ) : null}
 
-      {visibleCards.length ? (
+      {emailVerified && visibleCards.length ? (
         <Card
           title="Deck overview"
           description="Jump to a specific prompt in the current deck."
@@ -443,7 +476,7 @@ export default function FlashcardsScreen() {
         </Card>
       ) : null}
 
-      {focusDocument ? (
+      {emailVerified && focusDocument ? (
         <Card
           title="Source document"
           description="Open the document overview to keep studying in context."
