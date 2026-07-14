@@ -25,6 +25,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="document/[id]" />
             <Stack.Screen name="notifications" />
+            <Stack.Screen name="verify-email" />
           </Stack>
         </SafeAreaProvider>
       </AuthBootstrapGate>

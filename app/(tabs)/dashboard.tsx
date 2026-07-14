@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useGetNotificationsQuery } from '@/api/notificationsApi';
 import type { NotificationItem } from '@/api/notificationsApi';
 import { useGetProgressQuery } from '@/api/progressApi';
+import { isEmailVerified } from '@/auth/emailVerification';
 import { NotificationRow, StatCard } from '@/components/dashboard';
 import {
   Button,
@@ -42,6 +43,7 @@ export default function DashboardScreen() {
   const notifications = notificationsResponse?.notifications ?? [];
   const unreadCount = notificationsResponse?.unreadCount ?? 0;
   const hasPrimaryError = !progress && !notificationsResponse;
+  const emailVerified = isEmailVerified(user);
 
   function handleRefresh() {
     if (!hasActiveSession) {
@@ -103,24 +105,75 @@ export default function DashboardScreen() {
         />
       ) : null}
 
+      {!emailVerified ? (
+        <Card>
+          <View style={styles.verificationBanner}>
+            <View style={styles.verificationContent}>
+              <Text style={styles.verificationTitle}>
+                Verify your email to unlock learning features
+              </Text>
+              <Text style={styles.verificationBody}>
+                Your account can use profile and verification tools, but documents,
+                flashcards, quizzes, and AI study features stay locked until
+                verification is complete.
+              </Text>
+            </View>
+            <Button
+              size="sm"
+              variant="secondary"
+              onPress={() => router.push('/verify-email/pending')}
+            >
+              Open verification help
+            </Button>
+          </View>
+        </Card>
+      ) : null}
+
       <View style={styles.quickActions}>
         <Button
           variant="secondary"
-          onPress={() => router.push('/(tabs)/documents')}
+          onPress={() =>
+            router.push(
+              emailVerified
+                ? '/(tabs)/documents'
+                : {
+                    pathname: '/verify-email/pending',
+                    params: { from: '/documents' },
+                  },
+            )
+          }
         >
-          Upload
+          {emailVerified ? 'Upload' : 'Unlock docs'}
         </Button>
         <Button
           variant="secondary"
-          onPress={() => router.push('/(tabs)/flashcards')}
+          onPress={() =>
+            router.push(
+              emailVerified
+                ? '/(tabs)/flashcards'
+                : {
+                    pathname: '/verify-email/pending',
+                    params: { from: '/flashcards' },
+                  },
+            )
+          }
         >
-          Review
+          {emailVerified ? 'Review' : 'Unlock cards'}
         </Button>
         <Button
           variant="secondary"
-          onPress={() => router.push('/(tabs)/quizzes')}
+          onPress={() =>
+            router.push(
+              emailVerified
+                ? '/(tabs)/quizzes'
+                : {
+                    pathname: '/verify-email/pending',
+                    params: { from: '/quizzes' },
+                  },
+            )
+          }
         >
-          Quiz
+          {emailVerified ? 'Quiz' : 'Unlock quiz'}
         </Button>
       </View>
 
@@ -259,6 +312,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.md,
+  },
+  verificationBanner: {
+    gap: theme.spacing.md,
+  },
+  verificationContent: {
+    gap: theme.spacing.sm,
+  },
+  verificationTitle: {
+    color: theme.colors.warning,
+    fontSize: theme.typeScale.label.fontSize,
+    lineHeight: theme.typeScale.label.lineHeight,
+    fontWeight: '700',
+  },
+  verificationBody: {
+    color: theme.colors.textMuted,
+    fontSize: theme.typeScale.bodySmall.fontSize,
+    lineHeight: theme.typeScale.bodySmall.lineHeight,
   },
   statsGrid: {
     gap: theme.spacing.lg,

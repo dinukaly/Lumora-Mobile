@@ -254,8 +254,13 @@ export default function DocumentsScreen() {
           eyebrow="Verification required"
           title="Verify your email to unlock documents"
           description="New accounts need email verification before document uploads and library access are enabled. Check your inbox, verify your address, then come back here and refresh."
-          actionLabel="Refresh library"
-          onAction={handleRefresh}
+          actionLabel="Open verification help"
+          onAction={() =>
+            router.push({
+              pathname: '/verify-email/pending',
+              params: { from: '/documents' },
+            })
+          }
         />
       ) : null}
 

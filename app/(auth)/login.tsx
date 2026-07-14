@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useLoginMutation } from '@/api/authApi';
+import { getPostAuthRoute } from '@/auth/emailVerification';
 import { Button, Card, Screen, TextField } from '@/components/ui';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
@@ -34,13 +35,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [login, { isLoading, isSuccess }] = useLoginMutation();
+  const [login, { isLoading, isSuccess, data }] = useLoginMutation();
 
   useEffect(() => {
     if (isSuccess) {
-      router.replace('/(tabs)/dashboard');
+      router.replace(getPostAuthRoute(data?.user));
     }
-  }, [isSuccess, router]);
+  }, [data?.user, isSuccess, router]);
 
   async function handleSubmit() {
     const trimmedEmail = email.trim();

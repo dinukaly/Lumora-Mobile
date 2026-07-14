@@ -1,13 +1,14 @@
 import { Redirect } from 'expo-router';
 
+import { getPostAuthRoute } from '@/auth/emailVerification';
 import { useAppSelector } from '@/store/hooks';
 
 export default function IndexScreen() {
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   return (
     <Redirect
-      href={isAuthenticated ? '/(tabs)/dashboard' : '/(auth)/login'}
+      href={isAuthenticated ? getPostAuthRoute(user) : '/(auth)/login'}
     />
   );
 }

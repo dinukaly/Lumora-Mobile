@@ -1,4 +1,4 @@
-import { useRouter, useSegments } from 'expo-router';
+import { usePathname, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
@@ -13,6 +13,7 @@ import {
   logout,
   updateUser,
 } from '@/auth/authSlice';
+import { getPostAuthRoute, isEmailVerified } from '@/auth/emailVerification';
 import {
   clearRefreshToken,
   getRefreshToken,
@@ -37,8 +38,9 @@ export function AuthBootstrapGate({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const segments = useSegments();
-  const { accessToken, isAuthenticated, isBootstrapping } = useAppSelector(
+  const { accessToken, isAuthenticated, isBootstrapping, user } = useAppSelector(
     (state) => state.auth,
   );
 
@@ -100,18 +102,38 @@ export function AuthBootstrapGate({
 
     const currentGroup = segments[0];
     const inAuthGroup = currentGroup === '(auth)';
+    const inVerifyEmailGroup = currentGroup === 'verify-email';
+    const inVerifyPendingScreen =
+      currentGroup === 'verify-email' && segments[1] === 'pending';
 
     if (!isAuthenticated || !accessToken) {
-      if (!inAuthGroup) {
+      if (!inAuthGroup && !inVerifyEmailGroup) {
+        router.replace('/(auth)/login');
+      } else if (inVerifyPendingScreen) {
         router.replace('/(auth)/login');
       }
       return;
     }
 
     if (inAuthGroup) {
-      router.replace('/(tabs)/dashboard');
+      router.replace(getPostAuthRoute(user));
+      return;
     }
-  }, [accessToken, isAuthenticated, isBootstrapping, router, segments]);
+
+    if (!isEmailVerified(user)) {
+      const inAllowedTab =
+        currentGroup === '(tabs)' &&
+        (segments[1] === 'dashboard' || segments[1] === 'profile');
+      const inAllowedStandalone = currentGroup === 'verify-email' || currentGroup === 'notifications';
+
+      if (!inAllowedTab && !inAllowedStandalone) {
+        router.replace({
+          pathname: '/verify-email/pending',
+          params: { from: pathname },
+        });
+      }
+    }
+  }, [accessToken, isAuthenticated, isBootstrapping, pathname, router, segments, user]);
 
   if (isBootstrapping) {
     return (

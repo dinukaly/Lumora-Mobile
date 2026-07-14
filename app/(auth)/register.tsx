@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useRegisterMutation } from '@/api/authApi';
+import { getPostAuthRoute } from '@/auth/emailVerification';
 import { Button, Card, Screen, TextField } from '@/components/ui';
 import { theme } from '@/theme';
 import { getApiFormErrorState } from '@/utils/apiErrors';
@@ -45,9 +46,9 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     if (isSuccess) {
-      router.replace('/(tabs)/dashboard');
+      router.replace(getPostAuthRoute(data?.user));
     }
-  }, [isSuccess, router]);
+  }, [data?.user, isSuccess, router]);
 
   async function handleSubmit() {
     const trimmedName = name.trim();
