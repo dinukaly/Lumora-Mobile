@@ -1,4 +1,4 @@
-import { useRouter, useSegments } from 'expo-router';
+import { usePathname, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
@@ -38,6 +38,7 @@ export function AuthBootstrapGate({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const segments = useSegments();
   const { accessToken, isAuthenticated, isBootstrapping, user } = useAppSelector(
     (state) => state.auth,
@@ -104,9 +105,10 @@ export function AuthBootstrapGate({
     const inVerifyEmailGroup = currentGroup === 'verify-email';
     const inVerifyPendingScreen =
       currentGroup === 'verify-email' && segments[1] === 'pending';
+    const inGoogleAuthCallback = pathname === '/google-auth-callback';
 
     if (!isAuthenticated || !accessToken) {
-      if (!inAuthGroup && !inVerifyEmailGroup) {
+      if (!inAuthGroup && !inVerifyEmailGroup && !inGoogleAuthCallback) {
         router.replace('/(auth)/login');
       } else if (inVerifyPendingScreen) {
         router.replace('/(auth)/login');
@@ -117,7 +119,7 @@ export function AuthBootstrapGate({
     if (inAuthGroup) {
       router.replace(getPostAuthRoute(user));
     }
-  }, [accessToken, isAuthenticated, isBootstrapping, router, segments, user]);
+  }, [accessToken, isAuthenticated, isBootstrapping, pathname, router, segments, user]);
 
   if (isBootstrapping) {
     return (

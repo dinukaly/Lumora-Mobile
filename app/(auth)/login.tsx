@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useLoginMutation } from '@/api/authApi';
+import { GoogleAuthButton } from '@/auth/GoogleAuthButton';
 import { getPostAuthRoute } from '@/auth/emailVerification';
 import { Button, Card, Screen, TextField } from '@/components/ui';
 import { theme } from '@/theme';
@@ -136,6 +137,12 @@ export default function LoginScreen() {
               Sign in
             </Button>
           </View>
+
+          <GoogleAuthButton
+            disabled={isLoading}
+            mode="login"
+            onError={(message) => setFormError(message || null)}
+          />
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don&apos;t have an account?</Text>

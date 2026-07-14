@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useRegisterMutation } from '@/api/authApi';
+import { GoogleAuthButton } from '@/auth/GoogleAuthButton';
 import { getPostAuthRoute } from '@/auth/emailVerification';
 import { Button, Card, Screen, TextField } from '@/components/ui';
 import { theme } from '@/theme';
@@ -170,6 +171,12 @@ export default function RegisterScreen() {
               Create account
             </Button>
           </View>
+
+          <GoogleAuthButton
+            disabled={isLoading}
+            mode="signup"
+            onError={(message) => setFormError(message || null)}
+          />
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account?</Text>

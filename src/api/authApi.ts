@@ -3,6 +3,7 @@ import { logout, setAccessToken, setCredentials } from '@/auth/authSlice';
 import { clearRefreshToken, saveRefreshToken } from '@/auth/tokenStorage';
 
 export type UserRole = 'USER' | 'ADMIN';
+export type AuthProvider = 'local' | 'google' | 'apple';
 
 export type User = {
   id: string;
@@ -10,6 +11,8 @@ export type User = {
   email: string;
   role: UserRole;
   avatar?: string;
+  authProviders?: AuthProvider[];
+  hasPassword?: boolean;
   preferences?: Record<string, unknown>;
   lastLoginAt?: string;
   emailVerifiedAt?: string | null;
@@ -60,6 +63,14 @@ export type PushTokenRequest = {
 
 export type VerifyEmailResponse = {
   message: string;
+};
+
+export type StartMobileGoogleOAuthRequest = {
+  callbackUrl: string;
+};
+
+export type StartMobileGoogleOAuthResponse = {
+  authorizationUrl: string;
 };
 
 function normalizeUser(user: RawUser): User {
@@ -176,6 +187,15 @@ export const authApi = apiSlice.injectEndpoints({
         method: 'GET',
       }),
     }),
+    startMobileGoogleOAuth: builder.query<
+      StartMobileGoogleOAuthResponse,
+      StartMobileGoogleOAuthRequest
+    >({
+      query: ({ callbackUrl }) => ({
+        url: '/auth/mobile/oauth/google/start',
+        params: { callbackUrl },
+      }),
+    }),
     registerPushToken: builder.mutation<
       { message: string; tokenCount: number },
       PushTokenRequest
@@ -214,5 +234,6 @@ export const {
   useRemovePushTokenMutation,
   useResendVerificationEmailMutation,
   useRegisterMutation,
+  useLazyStartMobileGoogleOAuthQuery,
   useVerifyEmailMutation,
 } = authApi;
