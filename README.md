@@ -1,12 +1,5 @@
 # Lumora Mobile
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/icon.png" alt="Lumora logo" width="104" />
-</p>
-
-<p align="center">
   A mobile-first, document-grounded AI learning companion built with React Native and Expo.
-</p>
 
 Lumora Mobile turns PDF study material into an active learning experience. Upload a document, follow its processing status, read it on your phone, ask AI questions grounded in its contents, generate summaries and concepts, review flashcards, take quizzes, and keep up with learning activity from one app.
 
@@ -30,11 +23,11 @@ Lumora Mobile turns PDF study material into an active learning experience. Uploa
 
 | Dashboard | Documents | Flashcards |
 | --- | --- | --- |
-| <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/dashboard_screen.jpg" alt="Lumora learning dashboard" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/document_screen.jpg" alt="Lumora document library" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/flashcard_screen.jpg" alt="Lumora flashcard review screen" width="240" /> |
+| <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/dashboard_screen.jpg" alt="Lumora learning dashboard" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/document_screen.jpg" alt="Lumora document library" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/flashcard_screen.jpg" alt="Lumora flashcard review screen" width="240" /> |
 
 | Quizzes | Notifications | Profile |
 | --- | --- | --- |
-| <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/quiz_screen.jpg" alt="Lumora quiz screen" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/notification_screen.jpg" alt="Lumora notifications inbox" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/main/assets/screenshots/profile_screen.jpg" alt="Lumora profile screen" width="240" /> |
+| <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/quiz_screen.jpg" alt="Lumora quiz screen" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/notification_screen.jpg" alt="Lumora notifications inbox" width="240" /> | <img src="https://raw.githubusercontent.com/dinukaly/Lumora-Mobile/pre-dev/assets/screenshots/profile_screen.jpg" alt="Lumora profile screen" width="240" /> |
 
 ## Technology
 
@@ -196,9 +189,9 @@ assets/
 - Android device testing has covered key auth and notification flows; the full cross-feature Android/iOS test matrix remains in progress.
 - Mobile administration is deliberately out of scope. This app focuses on learner workflows.
 
-## Viva and interview preparation
+Go this link to Download the APK file:
 
-For project-specific questions and defensible answers from basic concepts through advanced architecture and trade-offs, see [Viva & Interview Q&A](VIVA_QA.md).
+[Download APK](https://expo.dev/accounts/dinukaly/projects/lumora-mobile/builds/c8829058-bb5d-4737-8d8c-c56a1abe0542)
 
 ## License
 
