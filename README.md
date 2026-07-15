@@ -70,7 +70,7 @@ The app is online-first. RTK Query keeps server data fresh, Socket.IO updates ac
 ### Installation
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/dinukaly/Lumora-Mobile.git
 cd Lumora-Mobile
 npm install
 ```
